@@ -1,3 +1,21 @@
 spring:
+  # Basic Config
   application:
     name: typing
+
+  # MySQL Config
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_LOCAL_USERNAME}
+    password: ${DB_LOCAL_PASSWORD}
+    driver-class-name: ${DB_DRIVER_CLASS_NAME}
+
+  # JPA Config
+  jpa:
+    show-sql: true
+    database: mysql
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
