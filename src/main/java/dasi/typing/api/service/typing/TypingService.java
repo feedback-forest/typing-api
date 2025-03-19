@@ -1,7 +1,7 @@
-package dasi.typing.api.service;
+package dasi.typing.api.service.typing;
 
-import dasi.typing.api.service.request.TypingCreateServiceRequest;
-import dasi.typing.api.service.response.TypingResponse;
+import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
+import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
 import dasi.typing.domain.phrase.Phrase;

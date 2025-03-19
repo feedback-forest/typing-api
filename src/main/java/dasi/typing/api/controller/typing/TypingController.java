@@ -1,8 +1,8 @@
-package dasi.typing.api.controller;
+package dasi.typing.api.controller.typing;
 
-import dasi.typing.api.controller.request.TypingCreateRequest;
-import dasi.typing.api.service.TypingService;
-import dasi.typing.api.service.response.TypingResponse;
+import dasi.typing.api.controller.typing.request.TypingCreateRequest;
+import dasi.typing.api.service.typing.TypingService;
+import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.exception.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,4 +1,4 @@
-package dasi.typing.api.service.response;
+package dasi.typing.api.service.typing.response;
 
 import lombok.Builder;
 
