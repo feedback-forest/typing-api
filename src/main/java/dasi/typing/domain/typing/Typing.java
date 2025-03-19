@@ -1,5 +1,6 @@
 package dasi.typing.domain.typing;
 
+import dasi.typing.domain.BaseEntity;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.phrase.Phrase;
 import jakarta.persistence.Entity;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Typing {
+public class Typing extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +28,8 @@ public class Typing {
   private Integer acc;
 
   private Integer wpm;
+
+  private Integer maxWpm;
 
   @ManyToOne(fetch = FetchType.LAZY)
   private Member member;
