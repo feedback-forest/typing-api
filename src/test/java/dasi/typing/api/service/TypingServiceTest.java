@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-import dasi.typing.api.controller.request.TypingCreateRequest;
-import dasi.typing.api.service.request.TypingCreateServiceRequest;
-import dasi.typing.api.service.response.TypingResponse;
+import dasi.typing.api.controller.typing.request.TypingCreateRequest;
+import dasi.typing.api.service.typing.TypingService;
+import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
+import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
 import dasi.typing.domain.phrase.Lang;

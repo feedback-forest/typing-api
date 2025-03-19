@@ -1,7 +1,7 @@
-package dasi.typing.api.controller.request;
+package dasi.typing.api.controller.typing.request;
 
 
-import dasi.typing.api.service.request.TypingCreateServiceRequest;
+import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import lombok.Builder;
 
 public class TypingCreateRequest {

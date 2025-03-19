@@ -1,4 +1,4 @@
-package dasi.typing.api.service.request;
+package dasi.typing.api.service.typing.request;
 
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.phrase.Phrase;
