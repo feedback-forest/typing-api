@@ -16,7 +16,7 @@ public class TypingController {
   private final TypingService typingService;
 
   @PostMapping("/api/v1/typings")
-  public ApiResponse<?> createTyping(@RequestBody TypingCreateRequest request) {
+  public ApiResponse<TypingResponse> createTyping(@RequestBody TypingCreateRequest request) {
 
     TypingResponse response = typingService.createTyping(request.toServiceRequest());
 

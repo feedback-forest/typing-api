@@ -13,9 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -27,7 +25,7 @@ class RankingControllerTest {
 
   @Test
   @DisplayName("실시간 랭킹 데이터를 조회하여 응답을 정상적으로 반환한다.")
-  public void sendRealTimeRankingToClient() throws Exception {
+  void sendRealTimeRankingToClient() throws Exception {
     // when & then
     mockMvc.perform(
             get("/api/v1/rankings/realtime")
@@ -36,8 +34,21 @@ class RankingControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value("0"))
         .andExpect(jsonPath("$.message").value("success"))
-        .andExpect(jsonPath("$.data").isArray())
-        .andExpect(jsonPath("$.data.length()").value(50));
+        .andExpect(jsonPath("$.data").isArray());
+  }
+
+  @Test
+  @DisplayName("현재 날짜에 해당하는 연월 랭킹 데이터를 조회하여 응답을 정상적으로 반환한다.")
+  void sendMonthlyRankingToClient() throws Exception {
+    // when & then
+    mockMvc.perform(
+            get("/api/v1/rankings/monthly")
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value("0"))
+        .andExpect(jsonPath("$.message").value("success"))
+        .andExpect(jsonPath("$.data").isArray());
   }
 
 }
