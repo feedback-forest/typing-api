@@ -1,5 +1,7 @@
 package dasi.typing.api.controller.ranking.response;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,13 +17,17 @@ public class RankingResponse {
 
   private Integer score;
 
+  private LocalDateTime createdDate;
+
   private Long ranking;
 
   @Builder
-  private RankingResponse(Long memberId, String nickname, Integer score, Long ranking) {
+  private RankingResponse(Long memberId, String nickname, Integer score, Timestamp createdDate,
+      Long ranking) {
     this.memberId = memberId;
     this.nickname = nickname;
     this.score = score;
+    this.createdDate = createdDate.toLocalDateTime();
     this.ranking = ranking;
   }
 }

@@ -25,7 +25,7 @@ class PhraseRepositoryTest {
 
   @Test
   @DisplayName("랜덤으로 20개의 문장들을 조회할 수 있다.")
-  public void findRandom20Phrase() {
+  void findRandom20Phrase() {
     // given
     List<Phrase> phrases = new ArrayList<>();
     for (int i = 1; i <= 25; i++) {
@@ -46,10 +46,12 @@ class PhraseRepositoryTest {
     assertThat(allIds)
         .containsAll(firstResult)
         .containsAll(secondResult);
-    assertThat(firstResult).hasSize(20).hasSameSizeAs(secondResult);
-    assertThat(firstResult).isNotEqualTo(secondResult);
-  }
 
+    assertThat(firstResult)
+        .hasSize(20)
+        .hasSameSizeAs(secondResult)
+        .isNotEqualTo(secondResult);
+  }
 
   private Phrase createPhrase(String sentence, String title, String author, Lang lang,
       LangType types) {

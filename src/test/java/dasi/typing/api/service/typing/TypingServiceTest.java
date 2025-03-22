@@ -1,11 +1,10 @@
-package dasi.typing.api.service;
+package dasi.typing.api.service.typing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import dasi.typing.api.controller.typing.request.TypingCreateRequest;
-import dasi.typing.api.service.typing.TypingService;
 import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
@@ -52,7 +51,7 @@ class TypingServiceTest {
 
   @Test
   @DisplayName("특정 문장에 대한 타자 정보를 생성할 있다.")
-  public void createTyping() {
+  void createTyping() {
     // given
     Phrase phrase = createPhrase(
         "안녕하세요.",
@@ -95,7 +94,7 @@ class TypingServiceTest {
 
   @Test
   @DisplayName("존재하지 않는 문장에 대해서 예외가 발생한다.")
-  public void notExistPhrase() throws CustomException {
+  void notExistPhrase() throws CustomException {
     // given
     Long phraseId = 999L;
 
@@ -109,7 +108,7 @@ class TypingServiceTest {
 
   @Test
   @DisplayName("타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
-  public void createTypingResponse() {
+  void createTypingResponse() {
     // given
     Phrase phrase = createPhrase(
         "안녕하세요.",

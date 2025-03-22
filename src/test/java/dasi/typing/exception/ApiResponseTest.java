@@ -1,7 +1,6 @@
 package dasi.typing.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,7 @@ class ApiResponseTest {
 
   @Test
   @DisplayName("success 응답이 정상적으로 생성된다.")
-  public void successApiResponse() {
+  void successApiResponse() {
     // given
     String data = "응답 성공";
 
@@ -33,7 +32,7 @@ class ApiResponseTest {
 
   @Test
   @DisplayName("error 응답이 정상적으로 생성된다.")
-  public void errorApiResponse() {
+  void errorApiResponse() {
     // given
     Code errorCode = Code.INVALID_CHARACTER_NICKNAME;
 

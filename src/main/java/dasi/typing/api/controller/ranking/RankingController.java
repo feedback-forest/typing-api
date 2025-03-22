@@ -15,10 +15,18 @@ public class RankingController {
   private final RankingService rankingService;
 
   @GetMapping("/api/v1/rankings/realtime")
-  public ApiResponse<?> getRealTimeRanking() {
+  public ApiResponse<List<RankingResponse>> getRealTimeRanking() {
 
     List<RankingResponse> responses = rankingService.getRealTimeRanking();
-    
+
+    return ApiResponse.success(responses);
+  }
+
+  @GetMapping("/api/v1/rankings/monthly")
+  public ApiResponse<List<RankingResponse>> getMonthlyRanking() {
+
+    List<RankingResponse> responses = rankingService.getMonthlyRanking();
+
     return ApiResponse.success(responses);
   }
 
