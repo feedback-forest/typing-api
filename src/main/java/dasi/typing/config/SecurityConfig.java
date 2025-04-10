@@ -1,7 +1,11 @@
 package dasi.typing.config;
 
+import dasi.typing.api.service.oauth.CustomOAuth2UserService;
+import dasi.typing.handler.OAuth2AuthenticationSuccessHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -13,7 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+  private final CustomOAuth2UserService customOAuth2UserService;
+  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -25,6 +33,15 @@ public class SecurityConfig {
         .logout(LogoutConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
             .anyRequest().permitAll()
+        );
+
+    http
+        .oauth2Client(Customizer.withDefaults())
+        .oauth2Login(oauth2 -> oauth2
+            .successHandler(oAuth2AuthenticationSuccessHandler)
+            .userInfoEndpoint(userInfo -> userInfo
+                .oidcUserService(customOAuth2UserService)
+            )
         );
 
     http.sessionManagement(
