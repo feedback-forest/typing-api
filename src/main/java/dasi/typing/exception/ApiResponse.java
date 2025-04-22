@@ -19,11 +19,11 @@ public class ApiResponse<T> {
         .data(data).build();
   }
 
-  public static ApiResponse<Void> error(Code errorCode) {
-    return new ApiResponseBuilder<Void>()
+  public static ApiResponse<Boolean> error(Code errorCode) {
+    return new ApiResponseBuilder<Boolean>()
         .code(errorCode.getCode())
         .message(errorCode.getMessage())
-        .data(null).build();
+        .data(false).build();
   }
 
 }

@@ -37,7 +37,7 @@ class ApiResponseTest {
     Code errorCode = Code.INVALID_CHARACTER_NICKNAME;
 
     // when
-    ApiResponse<Void> response = ApiResponse.error(errorCode);
+    ApiResponse<Boolean> response = ApiResponse.error(errorCode);
 
     // then
     assertThat(response)
@@ -45,7 +45,7 @@ class ApiResponseTest {
         .containsExactly(
             Code.INVALID_CHARACTER_NICKNAME.getCode(),
             Code.INVALID_CHARACTER_NICKNAME.getMessage(),
-            null
+            false
         );
   }
 
