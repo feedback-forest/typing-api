@@ -1,5 +1,6 @@
 package dasi.typing.exception;
 
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,13 @@ public class ApiResponse<T> {
         .code(Code.OK.getCode())
         .message(Code.OK.getMessage())
         .data(data).build();
+  }
+
+  public static <T> ApiResponse<Map<String, T>> success(String key, T data) {
+    return new ApiResponseBuilder<Map<String, T>>()
+        .code(Code.OK.getCode())
+        .message(Code.OK.getMessage())
+        .data(Map.of(key, data)).build();
   }
 
   public static ApiResponse<Boolean> error(Code errorCode) {

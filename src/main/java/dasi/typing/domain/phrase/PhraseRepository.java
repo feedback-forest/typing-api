@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface PhraseRepository extends JpaRepository<Phrase, Long> {
 
   @Query("SELECT p FROM Phrase p ORDER BY FUNCTION('RAND') LIMIT 20")
-  List<Phrase> findRandom20Phrases();
+  List<Phrase> getRandom20Phrases();
 
 }
