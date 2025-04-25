@@ -31,15 +31,15 @@ public class Phrase extends BaseEntity {
   private Lang lang;
 
   @Enumerated(EnumType.STRING)
-  private LangType types;
+  private LangType type;
 
   @Builder
-  private Phrase(String sentence, String title, String author, Lang lang, LangType types) {
+  private Phrase(String sentence, String title, String author, Lang lang, LangType type) {
     this.sentence = sentence;
     this.title = title;
     this.author = author;
     this.lang = lang;
-    this.types = types;
+    this.type = type;
   }
 
 }
