@@ -29,17 +29,17 @@ class PhraseRepositoryTest {
     // given
     List<Phrase> phrases = new ArrayList<>();
     for (int i = 1; i <= 25; i++) {
-      phrases.add(createPhrase(String.valueOf(i), "문장 " + i, "작가 " + i, Lang.KO, LangType.QUOTE));
+      phrases.add(createPhrase(String.valueOf(i), "문장 " + i, "작가 " + i));
     }
     phraseRepository.saveAll(phrases);
 
     // when
     List<Long> allIds = phrases.stream().map(Phrase::getId).toList();
 
-    List<Long> firstResult = phraseRepository.findRandom20Phrases()
+    List<Long> firstResult = phraseRepository.getRandom20Phrases()
         .stream().map(Phrase::getId).toList();
 
-    List<Long> secondResult = phraseRepository.findRandom20Phrases()
+    List<Long> secondResult = phraseRepository.getRandom20Phrases()
         .stream().map(Phrase::getId).toList();
 
     // then
@@ -53,14 +53,13 @@ class PhraseRepositoryTest {
         .isNotEqualTo(secondResult);
   }
 
-  private Phrase createPhrase(String sentence, String title, String author, Lang lang,
-      LangType types) {
+  private Phrase createPhrase(String sentence, String title, String author) {
     return Phrase.builder()
         .sentence(sentence)
         .title(title)
         .author(author)
-        .lang(lang)
-        .types(types)
+        .lang(Lang.KO)
+        .type(LangType.QUOTE)
         .build();
   }
 }
