@@ -1,4 +1,4 @@
-package dasi.typing.jwt;
+package dasi.typing.domain.member;
 
 import lombok.RequiredArgsConstructor;
 

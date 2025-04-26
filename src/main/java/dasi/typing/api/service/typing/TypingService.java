@@ -1,5 +1,8 @@
 package dasi.typing.api.service.typing;
 
+import static dasi.typing.exception.Code.NOT_EXIST_PHRASE;
+
+import dasi.typing.api.service.phrase.LuckyMessageService;
 import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
@@ -10,7 +13,10 @@ import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
+import dasi.typing.domain.member.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,26 +28,42 @@ public class TypingService {
   private final TypingRepository typingRepository;
   private final PhraseRepository phraseRepository;
   private final MemberRepository memberRepository;
+  private final LuckyMessageService luckyMessageService;
 
   @Transactional
-  public TypingResponse createTyping(TypingCreateServiceRequest request) {
+  public TypingResponse saveTyping(TypingCreateServiceRequest request) {
 
     Long phraseId = request.getPhraseId();
-    Phrase savedPhrase = phraseRepository.findById(phraseId).orElseThrow(
-        () -> new CustomException(Code.NOT_EXIST_PHRASE)
+    Phrase phrase = phraseRepository.findById(phraseId).orElseThrow(
+        () -> new CustomException(NOT_EXIST_PHRASE)
     );
 
-    Member member = Member.builder()
-        .kakaoId("3942518969")
-        .nickname("용갈이").build();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    boolean authenticatedUser = isAuthenticatedUser(authentication);
+    String nickname = "GUEST";
+    Integer rank = null;
 
-    Member savedMember = memberRepository.save(member);
+    if (authenticatedUser) {
+      String kakaoId = (String) authentication.getPrincipal();
+      Member member = memberRepository.findByKakaoId(kakaoId)
+          .orElseThrow(() -> new CustomException(Code.NOT_EXIST_MEMBER));
 
-    Typing typing = request.toEntity(savedPhrase, savedMember);
-    typingRepository.save(typing);
+      Typing typing = request.toEntity(phrase, member);
+      Typing savedTyping = typingRepository.save(typing);
+
+      rank = typingRepository.findTypingRank(savedTyping.getId());
+      nickname = member.getNickname();
+    }
 
     return TypingResponse.builder()
-        .luckyMessage("오늘 하루도 고생했어!")
-        .rank(1).build();
+        .role(authenticatedUser ? Role.USER : Role.GUEST)
+        .nickname(nickname)
+        .rank(rank)
+        .luckyMessage(luckyMessageService.generate()).build();
+  }
+
+  private boolean isAuthenticatedUser(Authentication authentication) {
+    return authentication.getAuthorities().stream()
+        .anyMatch(auth -> auth.getAuthority().equals("USER"));
   }
 }
