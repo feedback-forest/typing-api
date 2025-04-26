@@ -12,9 +12,9 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
   @Query(value = """
       SELECT t.member_id AS memberId, 
              m.nickname AS nickname,
-             t.wpm AS score,
-             t.created_date AS createdDate,
-             ROW_NUMBER() OVER (ORDER BY t.wpm DESC, t.max_wpm DESC, t.acc DESC, t.id) AS ranking
+             t.score AS score,
+             t.created_date,
+             ROW_NUMBER() OVER (ORDER BY t.score DESC, t.max_cpm DESC, t.acc DESC, t.created_date, t.id) AS ranking
       FROM typing t
       JOIN member m ON t.member_id = m.id
       ORDER BY ranking ASC
@@ -25,9 +25,9 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
   @Query(value = """
       SELECT t.member_id AS memberId, 
              m.nickname AS nickname,
-             t.wpm AS score,
-             t.created_date AS createdDate,
-             ROW_NUMBER() OVER (ORDER BY t.wpm DESC, t.max_wpm DESC, t.acc DESC, t.id) AS ranking
+             t.score AS score,
+             t.created_date,
+             ROW_NUMBER() OVER (ORDER BY t.score DESC, t.max_cpm DESC, t.acc DESC, t.created_date, t.id) AS ranking
       FROM typing t
       JOIN member m ON t.member_id = m.id
       WHERE t.created_date BETWEEN :startDate AND :endDate
@@ -38,4 +38,17 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
       @Param("startDate") LocalDateTime startDate,
       @Param("endDate") LocalDateTime endDate
   );
+
+  @Query(value = """
+      SELECT r.ranking
+      FROM (
+          SELECT t.id,
+                 ROW_NUMBER() OVER (ORDER BY t.score DESC, t.max_cpm DESC, t.acc DESC, t.created_date, t.id) AS ranking
+          FROM typing t
+      ) r
+      WHERE r.id = :typingId
+      """, nativeQuery = true)
+  int findTypingRank(@Param("typingId") Long typingId);
+
+
 }

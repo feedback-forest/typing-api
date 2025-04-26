@@ -1,5 +1,6 @@
 package dasi.typing.api.controller.ranking.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -17,6 +18,7 @@ public class RankingResponse {
 
   private Integer score;
 
+  @JsonIgnore
   private LocalDateTime createdDate;
 
   private Long ranking;

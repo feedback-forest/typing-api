@@ -14,12 +14,15 @@ public class TypingCreateRequest {
 
   private Integer wpm;
 
+  private Integer maxCpm;
+
   @Builder
-  private TypingCreateRequest(Long phraseId, Integer cpm, Integer acc, Integer wpm) {
+  private TypingCreateRequest(Long phraseId, Integer cpm, Integer acc, Integer wpm, Integer maxCpm) {
     this.phraseId = phraseId;
     this.cpm = cpm;
     this.acc = acc;
     this.wpm = wpm;
+    this.maxCpm = maxCpm;
   }
 
   public TypingCreateServiceRequest toServiceRequest() {
@@ -27,6 +30,7 @@ public class TypingCreateRequest {
         .phraseId(phraseId)
         .cpm(cpm)
         .acc(acc)
-        .wpm(wpm).build();
+        .wpm(wpm)
+        .maxCpm(maxCpm).build();
   }
 }
