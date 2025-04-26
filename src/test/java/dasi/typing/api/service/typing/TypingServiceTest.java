@@ -121,7 +121,7 @@ class TypingServiceTest {
 
     // when
     TypingCreateRequest request = createRequest(savedPhrase);
-    TypingResponse response = typingService.createTyping(request.toServiceRequest());
+    TypingResponse response = typingService.saveTyping(request.toServiceRequest());
 
     // then
     assertThat(response).isNotNull()
@@ -130,13 +130,13 @@ class TypingServiceTest {
   }
 
   private Phrase createPhrase(String sentence, String title, String author, Lang lang,
-      LangType types) {
+      LangType type) {
     return Phrase.builder()
         .sentence(sentence)
         .title(title)
         .author(author)
         .lang(lang)
-        .types(types)
+        .type(type)
         .build();
   }
 

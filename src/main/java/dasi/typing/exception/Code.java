@@ -23,6 +23,7 @@ public enum Code {
   ALREADY_EXIST_MEMBER(3000, "이미 존재하는 유저입니다."),
   KAKAO_ACCOUNT_NOT_FOUND(3001, "Kakao 사용자 정보를 가져오는데 실패했습니다."),
   KAKAO_ACCOUNT_NOT_REGISTERED(3002, "카카오 계정이 등록되어 있지 않습니다. 회원가입이 필요합니다."),
+  NOT_EXIST_MEMBER(3003, "존재하지 않는 유저입니다."),
 
   // Temp Token
   INVALID_TEMP_TOKEN(4000, "유효하지 않은 임시 토큰입니다."),

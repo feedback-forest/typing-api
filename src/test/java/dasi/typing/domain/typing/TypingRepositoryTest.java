@@ -13,12 +13,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Sql(scripts = "/ranking.sql")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class TypingRepositoryTest {
 
   @Autowired
@@ -93,6 +95,24 @@ class TypingRepositoryTest {
     }
   }
 
+  @Test
+  @DisplayName("타자 결과 정보를 저장했을 때, 해당 결과의 순위를 정확하게 조회할 수 있어야 한다.")
+  void findTypingRank() {
+    // given
+    Typing typing1 = createTyping(150, 100);
+    Typing typing2 = createTyping(122, 100);
+    Typing savedTyping1 = typingRepository.save(typing1);
+    Typing savedTyping2 = typingRepository.save(typing2);
+
+    // when
+    int typing1Rank = typingRepository.findTypingRank(savedTyping1.getId());
+    int typing2Rank = typingRepository.findTypingRank(savedTyping2.getId());
+
+    // then
+    assertEquals(1, typing1Rank);
+    assertEquals(31, typing2Rank);
+  }
+
   private static LocalDateTime getMonthStartDate(LocalDate now) {
     return now.withDayOfMonth(1)
         .atTime(0, 0, 0, 0);
@@ -105,6 +125,16 @@ class TypingRepositoryTest {
 
   private boolean inRange(LocalDateTime start, LocalDateTime date, LocalDateTime end) {
     return !date.isBefore(start) && !date.isAfter(end);
+  }
+
+  private Typing createTyping(int cpm, int acc) {
+    return Typing.builder()
+        .cpm(cpm)
+        .acc(acc)
+        .wpm(0)
+        .maxCpm(0)
+        .member(null)
+        .phrase(null).build();
   }
 
 }
