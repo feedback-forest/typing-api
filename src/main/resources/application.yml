@@ -125,6 +125,8 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
+front:
+  server: ${FRONT_SERVER}
 
 logging:
   level:
