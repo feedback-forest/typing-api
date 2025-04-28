@@ -7,16 +7,15 @@ import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.member.Role;
 import dasi.typing.domain.phrase.Phrase;
 import dasi.typing.domain.phrase.PhraseRepository;
 import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
-import dasi.typing.domain.member.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +30,13 @@ public class TypingService {
   private final LuckyMessageService luckyMessageService;
 
   @Transactional
-  public TypingResponse saveTyping(TypingCreateServiceRequest request) {
+  public TypingResponse saveTyping(Authentication authentication, TypingCreateServiceRequest request) {
 
     Long phraseId = request.getPhraseId();
     Phrase phrase = phraseRepository.findById(phraseId).orElseThrow(
         () -> new CustomException(NOT_EXIST_PHRASE)
     );
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     boolean authenticatedUser = isAuthenticatedUser(authentication);
     String nickname = "GUEST";
     Integer rank = null;

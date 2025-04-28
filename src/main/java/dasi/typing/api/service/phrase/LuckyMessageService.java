@@ -2,9 +2,11 @@ package dasi.typing.api.service.phrase;
 
 
 import java.util.Random;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+@Getter
 @Service
 @RequiredArgsConstructor
 public class LuckyMessageService {

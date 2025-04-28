@@ -7,6 +7,8 @@ import dasi.typing.exception.ApiResponse;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +23,8 @@ public class TypingController {
   @PostMapping("/api/v1/typings")
   public ApiResponse<Map<String, TypingResponse>> saveTyping(
       @RequestBody TypingCreateRequest request) {
-    TypingResponse response = typingService.saveTyping(request.toServiceRequest());
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    TypingResponse response = typingService.saveTyping(authentication, request.toServiceRequest());
     return ApiResponse.success("typing", response);
   }
 }

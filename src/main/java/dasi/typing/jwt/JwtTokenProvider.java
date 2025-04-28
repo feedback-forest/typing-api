@@ -2,9 +2,12 @@ package dasi.typing.jwt;
 
 import static dasi.typing.exception.Code.EMPTY_JWT_TOKEN;
 import static dasi.typing.exception.Code.EXPIRED_ACCESS_TOKEN;
+import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_ACCESS_TOKEN;
+import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.UNSUPPORTED_JWT_TOKEN;
 
+import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
@@ -18,6 +21,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +56,7 @@ public class JwtTokenProvider {
         .compact();
 
     String refreshToken = Jwts.builder()
+        .setSubject(UUID.randomUUID().toString())
         .setIssuedAt(now)
         .setExpiration(refreshTokenExpiresIn)
         .signWith(key, SignatureAlgorithm.HS256)
@@ -67,7 +72,7 @@ public class JwtTokenProvider {
         .refreshToken(refreshToken).build();
   }
 
-  public boolean validateToken(String token) {
+  public boolean validateAccessToken(String token) {
     try {
       Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
       return true;
@@ -75,6 +80,21 @@ public class JwtTokenProvider {
       throw new CustomException(INVALID_ACCESS_TOKEN);
     } catch (ExpiredJwtException e) {
       throw new CustomException(EXPIRED_ACCESS_TOKEN);
+    } catch (UnsupportedJwtException e) {
+      throw new CustomException(UNSUPPORTED_JWT_TOKEN);
+    } catch (IllegalArgumentException e) {
+      throw new CustomException(EMPTY_JWT_TOKEN);
+    }
+  }
+
+  public boolean validateRefreshToken(String token) {
+    try {
+      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+      return true;
+    } catch (SecurityException | MalformedJwtException e) {
+      throw new CustomException(INVALID_REFRESH_TOKEN);
+    } catch (ExpiredJwtException e) {
+      throw new CustomException(EXPIRED_REFRESH_TOKEN);
     } catch (UnsupportedJwtException e) {
       throw new CustomException(UNSUPPORTED_JWT_TOKEN);
     } catch (IllegalArgumentException e) {
