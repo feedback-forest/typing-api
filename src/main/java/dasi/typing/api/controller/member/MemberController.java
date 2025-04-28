@@ -8,17 +8,17 @@ import dasi.typing.api.service.member.NicknameService;
 import dasi.typing.exception.ApiResponse;
 import dasi.typing.jwt.GuestPrincipal;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('GUEST')")
@@ -57,5 +57,17 @@ public class MemberController {
     String nickname = nicknameService.generate();
     return ApiResponse.success(NicknameResponse.builder()
         .nickname(nickname).build());
+  }
+
+  @PostMapping("/api/v1/members/reissue")
+  @PreAuthorize("hasRole('USER')")
+  public ResponseEntity<ApiResponse<Boolean>> reissue() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String kakaoId = (String) authentication.getPrincipal();
+
+    String accessToken = memberService.reissue(kakaoId);
+    return ResponseEntity.ok()
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        .body(ApiResponse.success(true));
   }
 }

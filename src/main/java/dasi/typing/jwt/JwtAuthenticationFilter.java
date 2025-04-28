@@ -23,15 +23,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private static final String TOKEN_HEADER = "Authorization";
   private static final String TOKEN_PREFIX = "Bearer ";
+  private static final String REISSUE_URI = "/api/v1/members/reissue";
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
     String token = resolveToken(request);
+    String requestURI = request.getRequestURI();
 
-    if (StringUtils.isNotEmpty(token) && jwtTokenProvider.validateToken(token)) {
-
+    if (StringUtils.isNotEmpty(token) && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
       String kakaoId = jwtTokenProvider.getKakaoId(token);
       List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
 
@@ -51,5 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return bearerToken.substring(TOKEN_PREFIX.length());
     }
     return null;
+  }
+
+  private boolean isReissueRequest(String requestURI) {
+    return requestURI.equals(REISSUE_URI);
   }
 }

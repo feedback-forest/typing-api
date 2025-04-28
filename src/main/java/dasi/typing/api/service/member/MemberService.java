@@ -1,9 +1,11 @@
 package dasi.typing.api.service.member;
 
 import static dasi.typing.exception.Code.ALREADY_EXIST_NICKNAME;
+import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
+import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
 
@@ -14,27 +16,30 @@ import dasi.typing.domain.consent.ConsentRepository;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
 import dasi.typing.domain.memberConsent.MemberConsent;
+import dasi.typing.domain.refreshToken.RefreshToken;
+import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
 
-  private final JwtTokenProvider jwtTokenProvider;
   private final MemberRepository memberRepository;
   private final ConsentRepository consentRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
+
+  private final JwtTokenProvider jwtTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
 
   private static final Pattern INVALID_CV_PATTERN = Pattern.compile(".*[ㄱ-ㅎㅏ-ㅣ].*");
@@ -85,6 +90,24 @@ public class MemberService {
     if (validateAlreadyExistNickname(nickname)) {
       throw new CustomException(ALREADY_EXIST_NICKNAME);
     }
+  }
+
+  @Transactional
+  public String reissue(String kakaoId) {
+
+    RefreshToken refreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
+        () -> new CustomException(EXPIRED_REFRESH_TOKEN)
+    );
+
+    if (!jwtTokenProvider.validateRefreshToken(refreshToken.getToken())) {
+      throw new CustomException(INVALID_REFRESH_TOKEN);
+    }
+
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
+    RefreshToken newRefreshToken = refreshToken.updateValue(jwtToken.getRefreshToken());
+    refreshTokenRepository.save(newRefreshToken);
+
+    return jwtToken.getAccessToken();
   }
 
   private String getKakaoIdFromTempToken(String tempToken) {
