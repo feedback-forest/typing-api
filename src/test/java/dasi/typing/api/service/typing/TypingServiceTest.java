@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import dasi.typing.api.controller.typing.request.TypingCreateRequest;
+import dasi.typing.api.service.phrase.LuckyMessageService;
 import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.member.Role;
 import dasi.typing.domain.phrase.Lang;
 import dasi.typing.domain.phrase.LangType;
 import dasi.typing.domain.phrase.Phrase;
@@ -17,12 +19,20 @@ import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.GuestPrincipal;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
@@ -41,6 +51,8 @@ class TypingServiceTest {
   @Autowired
   private MemberRepository memberRepository;
 
+  @Autowired
+  private LuckyMessageService luckyMessageService;
 
   @AfterEach
   void tearDown() {
@@ -86,7 +98,7 @@ class TypingServiceTest {
         );
     assertThat(List.of(savedTyping.getPhrase()))
         .isNotNull()
-        .extracting("id", "sentence", "title", "author", "lang", "types")
+        .extracting("id", "sentence", "title", "author", "lang", "type")
         .containsExactlyInAnyOrder(
             tuple(savedTyping.getPhrase().getId(), "안녕하세요.", "인사", "김용범", Lang.KO, LangType.QUOTE)
         );
@@ -107,9 +119,17 @@ class TypingServiceTest {
   }
 
   @Test
-  @DisplayName("타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
-  void createTypingResponse() {
+  @DisplayName("비회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
+  void createAnonymousTypingResponse() {
     // given
+    String guestId = UUID.randomUUID().toString();
+    AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
+        "guestKey",
+        new GuestPrincipal(guestId),
+        AuthorityUtils.createAuthorityList("GUEST")
+    );
+    SecurityContextHolder.getContext().setAuthentication(anonymousToken);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Phrase phrase = createPhrase(
         "안녕하세요.",
         "인사",
@@ -121,12 +141,48 @@ class TypingServiceTest {
 
     // when
     TypingCreateRequest request = createRequest(savedPhrase);
-    TypingResponse response = typingService.saveTyping(request.toServiceRequest());
+    TypingResponse response = typingService.saveTyping(authentication, request.toServiceRequest());
 
     // then
-    assertThat(response).isNotNull()
-        .extracting("rank", "luckyMessage")
-        .containsExactlyInAnyOrder(1, "오늘 하루도 고생했어!");
+    assertThat(response).isNotNull();
+    assertThat(response.getRole()).isEqualTo(Role.GUEST);
+    assertThat(response.getNickname()).isEqualTo("GUEST");
+    assertThat(response.getRank()).isNull();
+    assertThat(luckyMessageService.getLuckyMessages()).contains(response.getLuckyMessage());
+  }
+
+  @Test
+  @DisplayName("회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
+  void createUserTypingResponse() {
+    // given
+    String kakaoId = "1234567890";
+    Member member = createMember(kakaoId, "dt10002");
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
+
+    UsernamePasswordAuthenticationToken authenticationToken =
+        new UsernamePasswordAuthenticationToken(kakaoId, null, authorities);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Phrase phrase = createPhrase(
+        "안녕하세요.",
+        "인사",
+        "김용범",
+        Lang.KO,
+        LangType.QUOTE
+    );
+    Phrase savedPhrase = phraseRepository.save(phrase);
+    Member savedMember = memberRepository.save(member);
+
+    // when
+    TypingCreateRequest request = createRequest(savedPhrase);
+    TypingResponse response = typingService.saveTyping(authentication, request.toServiceRequest());
+
+    // then
+    assertThat(response).isNotNull();
+    assertThat(response.getRole()).isEqualTo(Role.USER);
+    assertThat(response.getNickname()).isEqualTo(savedMember.getNickname());
+    assertThat(response.getRank()).isNotNull();
+    assertThat(luckyMessageService.getLuckyMessages()).contains(response.getLuckyMessage());
   }
 
   private Phrase createPhrase(String sentence, String title, String author, Lang lang,
@@ -151,7 +207,8 @@ class TypingServiceTest {
         .phraseId(savedPhrase.getId())
         .cpm(100)
         .acc(100)
-        .wpm(100).build();
+        .wpm(100)
+        .maxCpm(120).build();
   }
 
 }
