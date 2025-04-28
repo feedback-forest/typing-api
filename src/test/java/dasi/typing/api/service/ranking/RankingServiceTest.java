@@ -5,21 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dasi.typing.api.controller.ranking.response.RankingResponse;
+import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.phrase.PhraseRepository;
 import dasi.typing.domain.typing.TypingRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Sql(scripts = "/ranking.sql")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RankingServiceTest {
 
   @Autowired
@@ -27,6 +32,19 @@ class RankingServiceTest {
 
   @Autowired
   private TypingRepository typingRepository;
+
+  @Autowired
+  private PhraseRepository phraseRepository;
+
+  @Autowired
+  private MemberRepository memberRepository;
+
+  @AfterEach
+  void tearDown() {
+    typingRepository.deleteAllInBatch();
+    phraseRepository.deleteAllInBatch();
+    memberRepository.deleteAllInBatch();
+  }
 
   @Test
   @DisplayName("충분한 데이터가 존재할 때, 점수를 기준으로 내림차순하여 상위 50명의 데이터를 반환할 수 있다.")

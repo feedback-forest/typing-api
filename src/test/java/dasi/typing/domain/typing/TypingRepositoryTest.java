@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dasi.typing.api.controller.ranking.response.RankingResponse;
+import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.phrase.PhraseRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,19 @@ class TypingRepositoryTest {
 
   @Autowired
   private TypingRepository typingRepository;
+
+  @Autowired
+  private PhraseRepository phraseRepository;
+
+  @Autowired
+  private MemberRepository memberRepository;
+
+  @AfterEach
+  void tearDown() {
+    typingRepository.deleteAllInBatch();
+    phraseRepository.deleteAllInBatch();
+    memberRepository.deleteAllInBatch();
+  }
 
   @Test
   @DisplayName("충분히 많은 데이터가 존재할 때, 총점 기준으로 내림차순하여 상위 50명의 랭킹 정보를 조회할 수 있다.")
