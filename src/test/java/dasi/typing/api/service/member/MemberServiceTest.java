@@ -3,9 +3,15 @@ package dasi.typing.api.service.member;
 import static dasi.typing.domain.consent.ConsentType.PRIVACY_POLICY;
 import static dasi.typing.domain.consent.ConsentType.TERMS_OF_SERVICE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.refreshToken.RefreshToken;
+import dasi.typing.domain.refreshToken.RefreshTokenRepository;
+import dasi.typing.exception.Code;
+import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.JwtTokenProvider;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -33,11 +39,17 @@ class MemberServiceTest {
   private MemberRepository memberRepository;
 
   @Autowired
+  private RefreshTokenRepository refreshTokenRepository;
+
+  @Autowired
   private RedisTemplate<String, String> redisTemplate;
+  @Autowired
+  private JwtTokenProvider jwtTokenProvider;
 
   @AfterEach
   void tearDown() {
     memberRepository.deleteAllInBatch();
+    refreshTokenRepository.deleteAll();
   }
 
   @Test
@@ -80,6 +92,53 @@ class MemberServiceTest {
     assertThat(successCount.get()).isEqualTo(1);
     assertThat(failedCount.get()).isEqualTo(threadCount - 1);
   }
+
+  @Test
+  @DisplayName("존재하지 않는 RefreshToken으로 재발급 요청 시 EXPIRED_REFRESH_TOKEN 예외가 발생한다")
+  void expiredRefreshTokenTest() {
+    // given
+    String kakaoId = "1234567890";
+
+    // when & then
+    assertThatThrownBy(() -> memberService.reissue(kakaoId))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(Code.EXPIRED_REFRESH_TOKEN.getMessage());
+  }
+
+  @Test
+  @DisplayName("RefreshToken이 유효하지 않으면 INVALID_REFRESH_TOKEN 예외가 발생한다")
+  void refreshTokenInvalidTest() {
+    // given
+    String kakaoId = "kakaoId123";
+    RefreshToken refreshToken = RefreshToken.builder()
+        .kakaoId(kakaoId)
+        .token("INVALID_REFRESH_TOKEN").build();
+    refreshTokenRepository.save(refreshToken);
+
+    // when & then
+    assertThatThrownBy(() -> memberService.reissue(kakaoId))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(Code.INVALID_REFRESH_TOKEN.getMessage());
+  }
+
+  @Test
+  @DisplayName("AccessToken이 만료되고, RefreshToken이 유효한하다면 토큰을 재발급한다.")
+  void accessTokenReissueByRefreshTokenTest() {
+    // given
+    String kakaoId = "1234567890";
+    String refreshToken = jwtTokenProvider.generateToken(kakaoId).getRefreshToken();
+
+    // when
+    String accessToken = memberService.reissue(kakaoId);
+    RefreshToken newRefreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
+        () -> new CustomException(Code.INVALID_REFRESH_TOKEN)
+    );
+
+    // then
+    assertThat(accessToken).isNotNull();
+    assertThat(newRefreshToken.getToken()).isNotEqualTo(refreshToken);
+  }
+
 
   private void saveKakaoIdInRedis(String tempToken, String kakaoId) {
     redisTemplate.opsForValue().set(
