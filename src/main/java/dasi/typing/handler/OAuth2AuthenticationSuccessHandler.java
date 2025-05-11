@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -20,8 +21,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
+  @Value("${FRONT_SERVER}")
+  private String FRONT_SERVER;
+
   private final int TTL = 3;
-  private final String REDIRECT_URL = "/oauth/login";
+  private final String REDIRECT_URL = "/typing/login/callback";
   private final String REDIS_KEY_PREFIX = "auth:temp-token:";
 
   private final RedisTemplate<String, String> redisTemplate;
@@ -53,7 +57,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
   private String getTargetUrl(String tempToken) {
     return UriComponentsBuilder
-        .fromUriString(REDIRECT_URL)
+        .fromUriString(FRONT_SERVER + REDIRECT_URL)
         .queryParam("success", tempToken)
         .build().toUriString();
   }
