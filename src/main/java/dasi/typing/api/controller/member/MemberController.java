@@ -46,7 +46,7 @@ public class MemberController {
         .body(ApiResponse.success(true));
   }
 
-  @PostMapping("/api/v1/members/nickname")
+  @PostMapping("/api/v1/members/nickname/validate")
   public ApiResponse<Boolean> validateNickname(@RequestBody MemberNicknameRequest request) {
     memberService.validateNickname(request.toServiceRequest());
     return ApiResponse.success(true);
