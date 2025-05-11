@@ -1,6 +1,7 @@
 package dasi.typing.config;
 
 import dasi.typing.api.service.oauth.CustomOAuth2UserService;
+import dasi.typing.handler.OAuth2AuthenticationFailureHandler;
 import dasi.typing.handler.OAuth2AuthenticationSuccessHandler;
 import dasi.typing.jwt.GuestAuthenticationFilter;
 import dasi.typing.jwt.JwtAuthenticationFilter;
@@ -24,9 +25,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
-  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final GuestAuthenticationFilter guestAuthenticationFilter;
+  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+  private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,6 +46,7 @@ public class SecurityConfig {
         .oauth2Client(Customizer.withDefaults())
         .oauth2Login(oauth2 -> oauth2
             .successHandler(oAuth2AuthenticationSuccessHandler)
+            .failureHandler(oAuth2AuthenticationFailureHandler)
             .userInfoEndpoint(userInfo -> userInfo
                 .oidcUserService(customOAuth2UserService)
             )
