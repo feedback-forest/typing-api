@@ -11,12 +11,12 @@ public class TypingResponse {
 
   private String nickname;
 
-  private Integer rank;
+  private Long rank;
 
   private String luckyMessage;
 
   @Builder
-  private TypingResponse(Role role, String nickname, Integer rank, String luckyMessage) {
+  private TypingResponse(Role role, String nickname, Long rank, String luckyMessage) {
     this.role = role;
     this.nickname = nickname;
     this.rank = rank;

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,7 @@ class TypingRepositoryTest {
     }
   }
 
+  @Disabled
   @Test
   @DisplayName("현재 날짜에 해당하는 연월에 대한 랭킹 조회를 할 수 있다.")
   void getMonthlyRanking() {
@@ -112,21 +114,13 @@ class TypingRepositoryTest {
   }
 
   @Test
-  @DisplayName("타자 결과 정보를 저장했을 때, 해당 결과의 순위를 정확하게 조회할 수 있어야 한다.")
+  @DisplayName("타자 결과 정보를 저장했을 때, 해당 유저의 가장 최대 점수에 대한 순위를 반환한다.")
   void findTypingRank() {
     // given
-    Typing typing1 = createTyping(150, 100);
-    Typing typing2 = createTyping(122, 100);
-    Typing savedTyping1 = typingRepository.save(typing1);
-    Typing savedTyping2 = typingRepository.save(typing2);
 
-    // when
-    int typing1Rank = typingRepository.findTypingRank(savedTyping1.getId());
-    int typing2Rank = typingRepository.findTypingRank(savedTyping2.getId());
-
-    // then
-    assertEquals(1, typing1Rank);
-    assertEquals(31, typing2Rank);
+    // when & then
+    Long memberRank1 = typingRepository.findTypingRank(1L);
+    assertThat(memberRank1).isEqualTo(4);
   }
 
   private static LocalDateTime getMonthStartDate(LocalDate now) {

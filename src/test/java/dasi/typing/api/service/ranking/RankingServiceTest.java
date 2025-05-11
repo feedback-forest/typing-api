@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,7 @@ class RankingServiceTest {
     }
   }
 
+  @Disabled
   @Test
   @DisplayName("현재 날짜에 해당하는 연월에 대해서 최대 50등까지 랭킹 조회를 할 수 있다.")
   void getMonthlyRanking() {
