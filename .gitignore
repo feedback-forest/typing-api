@@ -39,3 +39,5 @@ out/
 ### Custom ###
 .gitmessage.txt
 .gitattributes
+/src/main/generated/
+/src/main/generated_tests/
