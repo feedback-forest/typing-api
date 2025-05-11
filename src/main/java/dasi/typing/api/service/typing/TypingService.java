@@ -39,7 +39,7 @@ public class TypingService {
 
     boolean authenticatedUser = isAuthenticatedUser(authentication);
     String nickname = "GUEST";
-    Integer rank = null;
+    Long rank = null;
 
     if (authenticatedUser) {
       String kakaoId = (String) authentication.getPrincipal();
@@ -49,7 +49,7 @@ public class TypingService {
       Typing typing = request.toEntity(phrase, member);
       Typing savedTyping = typingRepository.save(typing);
 
-      rank = typingRepository.findTypingRank(savedTyping.getId());
+      rank = typingRepository.findTypingRank(member.getId());
       nickname = member.getNickname();
     }
 
