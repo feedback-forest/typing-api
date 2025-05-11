@@ -25,7 +25,7 @@ class PhraseRepositoryTest {
 
   @Test
   @DisplayName("랜덤으로 20개의 문장들을 조회할 수 있다.")
-  void findRandom20Phrase() {
+  void findRandom20PhraseTest() {
     // given
     List<Phrase> phrases = new ArrayList<>();
     for (int i = 1; i <= 25; i++) {
