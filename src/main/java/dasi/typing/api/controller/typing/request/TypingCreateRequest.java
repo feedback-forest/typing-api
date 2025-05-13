@@ -2,8 +2,13 @@ package dasi.typing.api.controller.typing.request;
 
 
 import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TypingCreateRequest {
 
   private Long phraseId;
