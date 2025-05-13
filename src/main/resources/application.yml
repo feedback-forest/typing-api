@@ -122,9 +122,6 @@ spring:
               - account_email       # 카카오계정(이메일)
               - openid              # OIDC
 
-  jackson:
-    property-naming-strategy: SNAKE_CASE
-
 front:
   server: ${FRONT_SERVER}
 
