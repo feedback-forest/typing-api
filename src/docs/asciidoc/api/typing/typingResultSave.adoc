@@ -1,0 +1,66 @@
+== Typing-API
+
+[[typing]]
+= 타이핑 결과 저장 
+
+[[GUEST]]
+== 비회원인 경우
+
+=== Request
+
+==== Request Body
+
+include::{snippets}/TypingControllerDocsTest/sendGuestTypingResultToClient/request-body.adoc[]
+
+==== Request Field
+
+include::{snippets}/TypingControllerDocsTesT/sendGuestTypingResultToClient/request-fields.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/TypingControllerDocsTest/sendGuestTypingResultToClient/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/TypingControllerDocsTest/sendGuestTypingResultToClient/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/TypingControllerDocsTest/sendGuestTypingResultToClient/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/TypingControllerDocsTest/sendGuestTypingResultToClient/http-response.adoc[]
+
+[[USER]]
+== 유저인 경우
+
+=== Request
+
+==== Request Body
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/request-body.adoc[]
+
+==== Request Field
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/request-fields.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/TypingControllerDocsTest/sendUserTypingResultToClient/http-response.adoc[]

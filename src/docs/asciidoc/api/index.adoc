@@ -1,0 +1,39 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= 타자모어 REST API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+:docinfo: shared-head
+:docs-url: ../../docs/api
+
+[[Overview]]
+include::overview.adoc[]
+
+[[API-List]]
+== APIs
+
+=== Member API
+
+* link:{docs-url}/member/memberSignIn.html[카카오 로그인 API,window=_blank]
+* link:{docs-url}/member/memberSignUp.html[회원가입 API,window=_blank]
+* link:{docs-url}/member/memberRandomNickname.html[랜덤 닉네임 생성 API,window=_blank]
+* link:{docs-url}/member/memberValidateNickname.html[닉네임 검증 API,window=_blank]
+* link:{docs-url}/member/memberReissue.html[회원 토큰 재발급 API,window=_blank]
+
+=== Phrase API
+
+* link:{docs-url}/phrase/phraseRetrieve.html[타자 문장 조회 API,window=_blank]
+
+=== Ranking API
+
+* link:{docs-url}/ranking/rankingRealtime.html[실시간 전체 랭킹 조회 API,window=_blank]
+* link:{docs-url}/ranking/rankingMonthly.html[월별 전체 랭킹 조회 API,window=_blank]
+
+=== Typing API
+
+* link:{docs-url}/typing/typingResultSave.html[타이핑 결과 정보 저장 API,window=_blank]

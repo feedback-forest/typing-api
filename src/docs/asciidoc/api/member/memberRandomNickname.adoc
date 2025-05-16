@@ -1,0 +1,23 @@
+[[random-nickname]]
+== 랜덤 닉네임 생성 API
+
+=== Request
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/generateRandomNicknameTest/http-request.adoc[]
+'''
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/generateRandomNicknameTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/generateRandomNicknameTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/generateRandomNicknameTest/http-response.adoc[]

@@ -1,0 +1,73 @@
+[[validate-nickname]]
+= 닉네임 검증 API
+
+[[validate-nickname-success]]
+== 닉네임 검증 성공하는 경우
+
+=== Request
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameSuccessTest/http-request.adoc[]
+
+==== Request Fields
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameSuccessTest/request-fields.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameSuccessTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameSuccessTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameSuccessTest/http-response.adoc[]
+
+[[validate-nickname-failure]]
+== 닉네임 검증 실패하는 경우
+
+=== Request
+
+==== Request Body
+
+===== -> 2자 ~ 12자 길이 조건을 만족하지 못한 경우
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidLengthNicknameFailureTest/request-body.adoc[]
+
+===== -> 자음 또는 모음이 1개 이상 포함된 경우
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidCVNicknameFailureTest/request-body.adoc[]
+
+===== -> 특수문자 포함된 경우
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidCharacterNicknameFailureTest/request-body.adoc[]
+
+===== -> 해당 닉네임이 이미 존재하는 경우
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameAlreadyExistNicknameFailureTest/request-body.adoc[]
+
+==== Request Fields
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidLengthNicknameFailureTest/request-fields.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidLengthNicknameFailureTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidLengthNicknameFailureTest/response-body.adoc[]
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidCVNicknameFailureTest/response-body.adoc[]
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidCharacterNicknameFailureTest/response-body.adoc[]
+include::{snippets}/MemberControllerDocsTest/validateNicknameAlreadyExistNicknameFailureTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/validateNicknameInvalidLengthNicknameFailureTest/response-fields.adoc[]

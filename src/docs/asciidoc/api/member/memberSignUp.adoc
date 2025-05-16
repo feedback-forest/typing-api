@@ -1,0 +1,72 @@
+[[sign-up]]
+= 유저 회원가입
+
+[[success-sign-up]]
+== 성공하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/http-request.adoc[]
+
+=== Response
+
+==== Response Header
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-headers.adoc[]
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/http-response.adoc[]
+
+[[failure-sign-up]]
+== 실패하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/request-headers.adoc[]
+
+==== Request Body
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/request-body.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/response-body.adoc[]
+include::{snippets}/MemberControllerDocsTest/signUpInvalidTempTokenFailureTest/response-body.adoc[]
+
+==== Response Fields
+
+===== -> 해당 식별값이 이미 존재하는 회원인 경우
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/response-fields.adoc[]
+
+===== -> 임시 토큰이 존재하지 않거나, 유효하지 않은 경우
+
+include::{snippets}/MemberControllerDocsTest/signUpInvalidTempTokenFailureTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/signUpAlreadyExistMemberFailureTest/http-response.adoc[]
+include::{snippets}/MemberControllerDocsTest/signUpInvalidTempTokenFailureTest/http-response.adoc[]
