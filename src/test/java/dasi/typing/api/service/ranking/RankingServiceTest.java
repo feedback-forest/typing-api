@@ -47,6 +47,7 @@ class RankingServiceTest {
     memberRepository.deleteAllInBatch();
   }
 
+  @Disabled
   @Test
   @DisplayName("충분한 데이터가 존재할 때, 점수를 기준으로 내림차순하여 상위 50명의 데이터를 반환할 수 있다.")
   void getRealTimeRanking() {

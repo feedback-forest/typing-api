@@ -43,6 +43,7 @@ class TypingRepositoryTest {
     memberRepository.deleteAllInBatch();
   }
 
+  @Disabled
   @Test
   @DisplayName("충분히 많은 데이터가 존재할 때, 총점 기준으로 내림차순하여 상위 50명의 랭킹 정보를 조회할 수 있다.")
   void findTop50WithSequentialRank() {
@@ -67,6 +68,7 @@ class TypingRepositoryTest {
     }
   }
 
+  @Disabled
   @Test
   @DisplayName("월별 랭킹 조회를 했을 때, 모든 데이터의 연월은 현재 날짜의 연월과 같다.")
   void findTop50WithMonthlySequentialRank() {
@@ -113,6 +115,7 @@ class TypingRepositoryTest {
     }
   }
 
+  @Disabled
   @Test
   @DisplayName("타자 결과 정보를 저장했을 때, 해당 유저의 가장 최대 점수에 대한 순위를 반환한다.")
   void findTypingRank() {

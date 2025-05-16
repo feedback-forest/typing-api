@@ -1,0 +1,63 @@
+[[reissue]]
+= 회원 재발급 API
+
+[[reissue-success]]
+== 성공하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/http-request.adoc[]
+'''
+
+=== Response
+
+==== Response Header
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/response-headers.adoc[]
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/reissueSuccessTest/http-response.adoc[]
+
+[[reissue-failure]]
+== 실패하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/reissueInvalidAccessTokenFailureTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/reissueFailureTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/reissueInvalidAccessTokenFailureTest/response-body.adoc[]
+include::{snippets}/MemberControllerDocsTest/reissueFailureTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/reissueInvalidAccessTokenFailureTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/reissueInvalidAccessTokenFailureTest/http-response.adoc[]
+include::{snippets}/MemberControllerDocsTest/reissueFailureTest/http-response.adoc[]

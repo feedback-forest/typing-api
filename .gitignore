@@ -41,3 +41,4 @@ out/
 .gitattributes
 /src/main/generated/
 /src/main/generated_tests/
+/src/main/resources/static/docs/
