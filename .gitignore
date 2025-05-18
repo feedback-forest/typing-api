@@ -37,6 +37,7 @@ out/
 .vscode/
 
 ### Custom ###
+.env
 .gitmessage.txt
 .gitattributes
 /src/main/generated/
