@@ -1,0 +1,25 @@
+[[phrase-retrieve]]
+= 타이핑 문장 조회 API
+
+[[phrase-retrieve-success]]
+== 문장 조회 성공하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/PhraseControllerDocsTest/sendPhraseToClientTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/PhraseControllerDocsTest/sendPhraseToClientTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/PhraseControllerDocsTest/sendPhraseToClientTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/PhraseControllerDocsTest/sendPhraseToClientTest/response-fields.adoc[]

@@ -3,9 +3,11 @@ package dasi.typing.api.controller.member.request;
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
 import dasi.typing.domain.consent.ConsentType;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class MemberCreateRequest {
 
   private String nickname;

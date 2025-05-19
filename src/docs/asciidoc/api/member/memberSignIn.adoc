@@ -1,0 +1,60 @@
+[[sign-in]]
+= 유저 로그인
+
+[[success-sign-in]]
+== 성공하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/http-request.adoc[]
+
+=== Response
+
+==== Response Header
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-headers.adoc[]
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/signInSuccessTest/http-response.adoc[]
+
+[[failure-sign-in]]
+== 실패하는 경우
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/MemberControllerDocsTest/signInFailureTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/MemberControllerDocsTest/signInFailureTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/MemberControllerDocsTest/signInFailureTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/MemberControllerDocsTest/signInFailureTest/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/MemberControllerDocsTest/signInFailureTest/http-response.adoc[]

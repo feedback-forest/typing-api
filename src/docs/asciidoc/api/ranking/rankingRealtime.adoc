@@ -1,0 +1,25 @@
+[[ranking-Retrieve]]
+= 랭킹 조회 API
+
+[[ranking-realtime]]
+== 실시간 랭킹 조회
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/RankingControllerDocsTest/sendRealTimeRankingToClientTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/RankingControllerDocsTest/sendRealTimeRankingToClientTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/RankingControllerDocsTest/sendRealTimeRankingToClientTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/RankingControllerDocsTest/sendRealTimeRankingToClientTest/response-fields.adoc[]

@@ -1,0 +1,25 @@
+[[ranking-Retrieve]]
+= 랭킹 조회 API
+
+[[ranking-monthly]]
+== 월별 랭킹 조회
+
+=== Request
+
+==== Request Header
+
+include::{snippets}/RankingControllerDocsTest/sendMonthlyRankingToClientTest/request-headers.adoc[]
+
+==== HTTP Request
+
+include::{snippets}/RankingControllerDocsTest/sendMonthlyRankingToClientTest/http-request.adoc[]
+
+=== Response
+
+==== Response Body
+
+include::{snippets}/RankingControllerDocsTest/sendMonthlyRankingToClientTest/response-body.adoc[]
+
+==== Response Fields
+
+include::{snippets}/RankingControllerDocsTest/sendMonthlyRankingToClientTest/response-fields.adoc[]
