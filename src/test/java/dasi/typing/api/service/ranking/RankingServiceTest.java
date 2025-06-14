@@ -13,19 +13,14 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Sql(scripts = "/ranking.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RankingServiceTest {
 
   @Autowired
@@ -47,7 +42,8 @@ class RankingServiceTest {
     memberRepository.deleteAllInBatch();
   }
 
-  @Disabled
+  private final int RANKING_COUNT = 50;
+
   @Test
   @DisplayName("충분한 데이터가 존재할 때, 점수를 기준으로 내림차순하여 상위 50명의 데이터를 반환할 수 있다.")
   void getRealTimeRanking() {
@@ -72,7 +68,6 @@ class RankingServiceTest {
     }
   }
 
-  @Disabled
   @Test
   @DisplayName("현재 날짜에 해당하는 연월에 대해서 최대 50등까지 랭킹 조회를 할 수 있다.")
   void getMonthlyRanking() {
@@ -83,7 +78,7 @@ class RankingServiceTest {
 
     // when
     List<RankingResponse> responses = typingRepository
-        .findTop50WithMonthlySequentialRank(startDate, endDate);
+        .findMonthlyTopNWithSequentialRank(startDate, endDate, RANKING_COUNT);
 
     // then
     assertTrue(responses.size() <= 50);

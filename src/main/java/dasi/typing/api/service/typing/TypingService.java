@@ -47,9 +47,8 @@ public class TypingService {
           .orElseThrow(() -> new CustomException(Code.NOT_EXIST_MEMBER));
 
       Typing typing = request.toEntity(phrase, member);
-      Typing savedTyping = typingRepository.save(typing);
 
-      rank = typingRepository.findTypingRank(member.getId());
+      rank = typingRepository.findHighestRankingByMemberId(member.getId());
       nickname = member.getNickname();
     }
 

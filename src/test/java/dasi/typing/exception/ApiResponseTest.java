@@ -1,15 +1,12 @@
 package dasi.typing.exception;
 
-import static dasi.typing.exception.Code.*;
+import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
+import static dasi.typing.exception.Code.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("test")
 class ApiResponseTest {
 
   @Test

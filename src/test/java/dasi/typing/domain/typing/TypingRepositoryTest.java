@@ -1,31 +1,40 @@
 package dasi.typing.domain.typing;
 
+import static dasi.typing.utils.DateTimeUtil.getMonthEndDate;
+import static dasi.typing.utils.DateTimeUtil.getMonthStartDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dasi.typing.api.controller.ranking.response.RankingResponse;
+import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.phrase.Phrase;
 import dasi.typing.domain.phrase.PhraseRepository;
+import dasi.typing.exception.Code;
+import dasi.typing.exception.CustomException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@ActiveProfiles("test")
-@Sql(scripts = "/ranking.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class TypingRepositoryTest {
+
+  @PersistenceContext
+  private EntityManager em;
 
   @Autowired
   private TypingRepository typingRepository;
@@ -43,111 +52,224 @@ class TypingRepositoryTest {
     memberRepository.deleteAllInBatch();
   }
 
-  @Disabled
-  @Test
-  @DisplayName("충분히 많은 데이터가 존재할 때, 총점 기준으로 내림차순하여 상위 50명의 랭킹 정보를 조회할 수 있다.")
-  void findTop50WithSequentialRank() {
+  private final int RANKING_COUNT = 50;
+
+  private static Stream<Arguments> paramsForFindUpTo50UserRanking() {
+    return Stream.of(
+        Arguments.of(0, 0),
+        Arguments.of(1, 1),
+        Arguments.of(49, 49),
+        Arguments.of(50, 50),
+        Arguments.of(51, 50),
+        Arguments.of(100, 50)
+    );
+  }
+
+  @ParameterizedTest(name = "[{index}] 실시간 전체 유저 수: {0}명 / 결과: {1}명 랭킹 조회")
+  @MethodSource("paramsForFindUpTo50UserRanking")
+  @DisplayName("실시간 랭킹에서 총점을 기반으로 최대 50명의 랭킹 정보를 조회할 수 있다.")
+  void findRealtimeRankingInfoUpTo50ByTotalScoreTest(int userCnt, int expected) {
     // given
-    List<RankingResponse> responses = typingRepository.findTop50WithSequentialRank();
+    Phrase phrase = createPhrase();
+
+    List<Typing> typings = IntStream.rangeClosed(1, userCnt)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i, 100, member, phrase);
+        })
+        .toList();
 
     // when
-    RankingResponse first = responses.getFirst();
-    RankingResponse last = responses.getLast();
+    typingRepository.saveAll(typings);
+    List<RankingResponse> sequentialRankingResponses = typingRepository
+        .findRealtimeTopNWithSequentialRank(RANKING_COUNT);
 
     // then
-    assertThat(responses).hasSize(50);
-    assertEquals(1L, first.getRanking());
-    assertEquals(50L, last.getRanking());
+    assertThat(sequentialRankingResponses).hasSize(expected);
+  }
 
+  @ParameterizedTest(name = "[{index}] 월별 전체 유저 수: {0}명 / 결과: {1}명 랭킹 조회")
+  @MethodSource("paramsForFindUpTo50UserRanking")
+  @DisplayName("월별 랭킹에서 총점을 기반으로 최대 50명의 랭킹 정보를 조회할 수 있다.")
+  void findMonthlyRankingInfoUpTo50ByTotalScoreTest(int userCnt, int expected) {
+    // given
+    LocalDateTime monthStartDate = getMonthStartDate(LocalDate.now());
+    LocalDateTime monthEndDate = getMonthEndDate(LocalDate.now());
+
+    Phrase phrase = createPhrase();
+    List<Typing> typings = IntStream.rangeClosed(1, userCnt)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i, 100, member, phrase);
+        })
+        .toList();
+
+    // when
+    typingRepository.saveAll(typings);
+    List<RankingResponse> monthlySequentialRankingResponses = typingRepository
+        .findMonthlyTopNWithSequentialRank(monthStartDate, monthEndDate, RANKING_COUNT);
+
+    // then
+    assertThat(monthlySequentialRankingResponses).hasSize(expected);
+  }
+
+  @Test
+  @DisplayName("실시간 랭킹 조 시, 총점 기준으로 내림차순하여 랭킹 정보를 조회할 수 있다.")
+  void findRealTimeRankingsSortedByTotalScoreDescendingTest() {
+    // given
+    Phrase phrase = createPhrase();
+    List<Typing> typings = IntStream.rangeClosed(1, 20)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i * 10, 100, member, phrase);
+        })
+        .toList();
+
+    typingRepository.saveAll(typings);
+
+    // when
+    List<RankingResponse> responses = typingRepository
+        .findRealtimeTopNWithSequentialRank(RANKING_COUNT);
+
+    // then
     for (int i = 0; i < responses.size() - 1; i++) {
       RankingResponse current = responses.get(i);
       RankingResponse next = responses.get(i + 1);
 
-      assertTrue(current.getScore() >= next.getScore());
+      assertTrue(current.getScore() > next.getScore());
       assertEquals(current.getRanking() + 1, next.getRanking());
     }
   }
 
-  @Disabled
   @Test
-  @DisplayName("월별 랭킹 조회를 했을 때, 모든 데이터의 연월은 현재 날짜의 연월과 같다.")
-  void findTop50WithMonthlySequentialRank() {
+  @DisplayName("월별 랭킹 조 시, 총점 기준으로 내림차순하여 랭킹 정보를 조회할 수 있다.")
+  void findMonthlyRankingsSortedByTotalScoreDescendingTest() {
     // given
     LocalDate now = LocalDate.now();
-    LocalDateTime startDate = getMonthStartDate(now);
-    LocalDateTime endDate = getMonthEndDate(now);
+    LocalDateTime monthStartDate = getMonthStartDate(now);
+    LocalDateTime monthEndDate = getMonthEndDate(now);
+
+    Phrase phrase = createPhrase();
+    List<Typing> typings = IntStream.rangeClosed(1, 20)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i * 10, 100, member, phrase);
+        })
+        .toList();
+
+    typingRepository.saveAll(typings);
 
     // when
     List<RankingResponse> responses = typingRepository
-        .findTop50WithMonthlySequentialRank(startDate, endDate);
+        .findMonthlyTopNWithSequentialRank(monthStartDate, monthEndDate, RANKING_COUNT);
 
     // then
-    assertTrue(responses.size() <= 50);
-    for (RankingResponse response : responses) {
-      assertThat(response.getCreatedDate().getYear()).isEqualTo(now.getYear());
-      assertThat(response.getCreatedDate().getMonthValue()).isEqualTo(now.getMonthValue());
-    }
-  }
-
-  @Disabled
-  @Test
-  @DisplayName("현재 날짜에 해당하는 연월에 대한 랭킹 조회를 할 수 있다.")
-  void getMonthlyRanking() {
-    // given
-    LocalDate now = LocalDate.now();
-    LocalDateTime startDate = getMonthStartDate(now);
-    LocalDateTime endDate = getMonthEndDate(now);
-
-    // when
-    List<RankingResponse> responses = typingRepository
-        .findTop50WithMonthlySequentialRank(startDate, endDate);
-
-    // then
-    assertTrue(responses.size() <= 50);
     for (int i = 0; i < responses.size() - 1; i++) {
       RankingResponse current = responses.get(i);
       RankingResponse next = responses.get(i + 1);
 
-      assertTrue(inRange(startDate, current.getCreatedDate(), endDate));
-      assertTrue(inRange(startDate, next.getCreatedDate(), endDate));
-      assertTrue(current.getScore() >= next.getScore());
+      assertTrue(current.getScore() > next.getScore());
       assertEquals(current.getRanking() + 1, next.getRanking());
     }
   }
 
-  @Disabled
+  @Transactional
+  @Test
+  @DisplayName("현재 날짜에 해당하는 연월에 대한 랭킹 정보만 정확히 조회할 수 있다.")
+  void findRankingsExcludingPastAndFutureMonthsTest() {
+    // given
+    LocalDate now = LocalDate.now();
+    LocalDate pastDate = LocalDate.now().minusMonths(1);
+    LocalDate futureDate = LocalDate.now().plusMonths(1);
+
+    LocalDateTime startDate = getMonthStartDate(now);
+    LocalDateTime endDate = getMonthEndDate(now);
+
+    Phrase phrase = createPhrase();
+
+    // when
+    Member member1 = createMember("1", "testUser1");
+    Typing savedTyping1 = typingRepository.save(createTyping(100, 100, member1, phrase));
+    updateTypingCreatedDate(pastDate, savedTyping1);
+
+    Member member2 = createMember("2", "testUser2");
+    typingRepository.save(createTyping(100, 100, member2, phrase));
+
+    Member member3 = createMember("3", "testUser3");
+    typingRepository.save(createTyping(100, 100, member3, phrase));
+
+    Member member4 = createMember("4", "testUser4");
+    Typing savedTyping2 = typingRepository.save(createTyping(100, 100, member4, phrase));
+    updateTypingCreatedDate(futureDate, savedTyping2);
+
+    em.flush();
+    em.clear();
+
+    List<RankingResponse> responses = typingRepository
+        .findMonthlyTopNWithSequentialRank(startDate, endDate, RANKING_COUNT);
+
+    // then
+    assertThat(responses).hasSize(2);
+  }
+
   @Test
   @DisplayName("타자 결과 정보를 저장했을 때, 해당 유저의 가장 최대 점수에 대한 순위를 반환한다.")
-  void findTypingRank() {
+  void returnsHighestRankForMemberWithHighestScoreTest() {
     // given
+    Phrase phrase = createPhrase();
+    List<Typing> typings = IntStream.rangeClosed(1, 10)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i * 10, 100, member, phrase);
+        })
+        .toList();
 
-    // when & then
-    Long memberRank1 = typingRepository.findTypingRank(1L);
-    assertThat(memberRank1).isEqualTo(4);
+    // when
+    typingRepository.saveAll(typings);
+    Member findMember = memberRepository.findByKakaoId("1").orElseThrow(
+        () -> new CustomException(Code.NOT_EXIST_MEMBER)
+    );
+
+    // 가장 낮은 점수를 가진 [kakaoId == 1] 유저에게 가장 높은 점수를 부여한다.
+    typingRepository.save(createTyping(1000, 100, findMember, phrase));
+    Long highestRank = typingRepository.findHighestRankingByMemberId(findMember.getId());
+
+    // then
+    assertThat(highestRank).isEqualTo(1L);
   }
 
-  private static LocalDateTime getMonthStartDate(LocalDate now) {
-    return now.withDayOfMonth(1)
-        .atTime(0, 0, 0, 0);
+  private void updateTypingCreatedDate(LocalDate date, Typing typing) {
+    em.createNativeQuery("UPDATE typing SET created_date = :date WHERE id = :id")
+        .setParameter("date", date.atStartOfDay())
+        .setParameter("id", typing.getId())
+        .executeUpdate();
   }
 
-  private static LocalDateTime getMonthEndDate(LocalDate now) {
-    return now.with(TemporalAdjusters.lastDayOfMonth())
-        .atTime(23, 59, 59, 999999999);
-  }
-
-  private boolean inRange(LocalDateTime start, LocalDateTime date, LocalDateTime end) {
-    return !date.isBefore(start) && !date.isAfter(end);
-  }
-
-  private Typing createTyping(int cpm, int acc) {
+  private Typing createTyping(int cpm, int acc, Member member, Phrase phrase) {
     return Typing.builder()
         .cpm(cpm)
         .acc(acc)
         .wpm(0)
         .maxCpm(0)
-        .member(null)
-        .phrase(null).build();
+        .member(member)
+        .phrase(phrase).build();
   }
 
+  private Member createMember(String kakaoId, String nickname) {
+    return memberRepository.save(Member.builder()
+        .kakaoId(kakaoId)
+        .nickname(nickname).build()
+    );
+  }
+
+  private Phrase createPhrase() {
+    return phraseRepository.save(Phrase.builder()
+        .sentence("test phrase").build()
+    );
+  }
 }
