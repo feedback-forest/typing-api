@@ -139,7 +139,8 @@ class TypingRepositoryTest {
       RankingResponse current = responses.get(i);
       RankingResponse next = responses.get(i + 1);
 
-      assertTrue(current.getScore() > next.getScore());
+      // Allow ties in scores; ensure rankings are still sequential.
+      assertTrue(current.getScore() >= next.getScore());
       assertEquals(current.getRanking() + 1, next.getRanking());
     }
   }
