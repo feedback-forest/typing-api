@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
@@ -74,13 +75,86 @@ dependencies {
 
 }
 
+jacoco {
+    toolVersion = "0.8.11"
+}
+
 ext {
     snippetsDir = file('build/generated-snippets')
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
     outputs.dir snippetsDir
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.required = true
+
+        xml.destination file(project.layout.buildDirectory.dir("jacoco/index.xml")) as File
+        csv.destination file(project.layout.buildDirectory.dir("jacoco/index.csv")) as File
+        html.destination file(project.layout.buildDirectory.dir("jacoco/index.html")) as File
+    }
+    def Qdomains = []
+    for (qPattern in '*.QA'..'*.QZ') {
+        Qdomains.add(qPattern + '*')
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**.request.**',
+                    '**.response.**',
+                    '**/*Application*',
+                    '**/exception/**',
+                    '**/config/**',
+            ] + Qdomains)
+        }))
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+    def Qdomains = []
+    for (qPattern in '*.QA'..'*.QZ') {
+        Qdomains.add(qPattern + '*')
+    }
+    violationRules {
+        rule {
+            enabled = true;
+            element = 'CLASS'
+
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+
+            excludes = [
+                    '**.request.**',
+                    '**.response.**',
+                    '**.event.**',
+                    '**.*InitData*',
+                    '**.*Application*',
+                    '**.exception.**',
+                    '**.service.alarm.**',
+                    '**.aop.**',
+                    '**.config.**',
+                    '**.MemberRole*'
+            ] + Qdomains
+        }
+    }
 }
 
 tasks.named('asciidoctor') {
