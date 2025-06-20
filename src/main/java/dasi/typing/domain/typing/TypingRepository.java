@@ -79,4 +79,21 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
       WHERE memberId = :memberId;
       """, nativeQuery = true)
   Long findHighestRankingByMemberId(@Param("memberId") Long memberId);
+
+  @Query(value = """
+         SELECT COUNT(*) + 1 AS ranking
+         FROM typing t
+         WHERE t.score > :targetScore
+           OR (t.score = :targetScore AND t.max_cpm > :targetMaxCpm)
+           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc > :targetAcc)
+           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc = :targetAcc AND t.created_date < :targetCreatedDate)
+           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc = :targetAcc AND t.created_date = :targetCreatedDate AND t.id < :targetId)
+      """, nativeQuery = true)
+  Long findRanking(
+      @Param("targetScore") int targetScore,
+      @Param("targetMaxCpm") int targetMaxCpm,
+      @Param("targetAcc") double targetAcc,
+      @Param("targetCreatedDate") LocalDateTime targetCreatedDate,
+      @Param("targetId") Long targetId
+  );
 }

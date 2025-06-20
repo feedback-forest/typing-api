@@ -48,8 +48,14 @@ public class TypingService {
 
       Typing typing = request.toEntity(phrase, member);
 
-      rank = typingRepository.findHighestRankingByMemberId(member.getId());
       nickname = member.getNickname();
+      rank = typingRepository.findRanking(
+          typing.getScore(),
+          typing.getMaxCpm(),
+          typing.getAcc(),
+          typing.getCreatedDate(),
+          typing.getMember().getId()
+      );
     }
 
     return TypingResponse.builder()
