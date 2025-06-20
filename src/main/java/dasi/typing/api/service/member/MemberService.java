@@ -8,6 +8,8 @@ import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.length;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
 import dasi.typing.api.service.member.request.MemberNicknameServiceRequest;
@@ -25,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,8 +78,8 @@ public class MemberService {
 
     String nickname = request.getNickname();
 
-    if (StringUtils.isEmpty(nickname) || StringUtils.length(nickname) < 2
-        || StringUtils.length(nickname) > 12) {
+    if (isEmpty(nickname) || length(nickname) < 2
+        || length(nickname) > 12) {
       throw new CustomException(INVALID_LENGTH_NICKNAME);
     }
     if (INVALID_CV_PATTERN.matcher(nickname).matches()) {

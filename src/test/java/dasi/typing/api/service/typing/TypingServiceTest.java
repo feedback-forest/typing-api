@@ -33,10 +33,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class TypingServiceTest {
 
   @Autowired
@@ -66,14 +64,14 @@ class TypingServiceTest {
   void createTyping() {
     // given
     Phrase phrase = createPhrase(
-        "안녕하세요.",
-        "인사",
-        "김용범",
+        "test sentence",
+        "test title",
+        "test author",
         Lang.KO,
         LangType.QUOTE
     );
 
-    Member member = createMember("3942518969", "용갈이");
+    Member member = createMember("000000000", "test nickname");
     Member savedMember = memberRepository.save(member);
     Phrase savedPhrase = phraseRepository.save(phrase);
     TypingCreateRequest request = createRequest(savedPhrase);
@@ -94,13 +92,14 @@ class TypingServiceTest {
         .isNotNull()
         .extracting("id", "kakaoId", "nickname")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getMember().getId(), "3942518969", "용갈이")
+            tuple(savedTyping.getMember().getId(), "000000000", "test nickname")
         );
     assertThat(List.of(savedTyping.getPhrase()))
         .isNotNull()
         .extracting("id", "sentence", "title", "author", "lang", "type")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getPhrase().getId(), "안녕하세요.", "인사", "김용범", Lang.KO, LangType.QUOTE)
+            tuple(
+                savedTyping.getPhrase().getId(), "test sentence", "test title", "test author", Lang.KO, LangType.QUOTE)
         );
   }
 
@@ -155,8 +154,8 @@ class TypingServiceTest {
   @DisplayName("회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
   void createUserTypingResponse() {
     // given
-    String kakaoId = "1234567890";
-    Member member = createMember(kakaoId, "dt10002");
+    String kakaoId = "000000000";
+    Member member = createMember(kakaoId, "test nickname");
     List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
 
     UsernamePasswordAuthenticationToken authenticationToken =
@@ -164,9 +163,9 @@ class TypingServiceTest {
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Phrase phrase = createPhrase(
-        "안녕하세요.",
-        "인사",
-        "김용범",
+        "test sentence",
+        "test title",
+        "test author",
         Lang.KO,
         LangType.QUOTE
     );
@@ -210,5 +209,4 @@ class TypingServiceTest {
         .wpm(100)
         .maxCpm(120).build();
   }
-
 }

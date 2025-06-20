@@ -21,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-  @Value("${FRONT_SERVER}")
+  @Value("${front.server}")
   private String FRONT_SERVER;
 
   private final int TTL = 3;

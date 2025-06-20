@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
 
-  @Value("${FRONT_SERVER}")
+  @Value("${front.server}")
   private String FRONT_SERVER;
 
   private final String REDIRECT_URL = "/typing/login/callback";
