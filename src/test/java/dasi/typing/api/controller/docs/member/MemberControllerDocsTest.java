@@ -9,6 +9,8 @@ import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -46,9 +48,6 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 class MemberControllerDocsTest extends RestDocsSupport {
-
-  private final String BEARER_PREFIX = "Bearer ";
-  private final String REDIS_KEY_PREFIX = "auth:temp-token:";
 
   private final String KAKAO_ID = "1234567890";
   private final String NICKNAME = "dragon";
@@ -500,8 +499,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
     given(nicknameService.generate()).willReturn(RANDOM_NICKNAME);
 
     // when
-    String expectedJson = createExpectedSuccessJson(
-        NicknameResponse.builder().nickname(RANDOM_NICKNAME).build());
+    String expectedJson = createExpectedSuccessJson(new NicknameResponse(RANDOM_NICKNAME));
 
     // then
     mockMvc.perform(

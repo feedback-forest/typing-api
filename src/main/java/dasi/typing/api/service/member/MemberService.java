@@ -2,12 +2,16 @@ package dasi.typing.api.service.member;
 
 import static dasi.typing.exception.Code.ALREADY_EXIST_NICKNAME;
 import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
+import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
 import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
+import static dasi.typing.utils.CommonConstant.REQUIRED_CONSENT_COUNT;
+import static dasi.typing.utils.PatternUtil.ALLOWED_NICKNAME_PATTERN;
+import static dasi.typing.utils.PatternUtil.INVALID_CV_PATTERN;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.length;
 
@@ -17,7 +21,6 @@ import dasi.typing.domain.consent.Consent;
 import dasi.typing.domain.consent.ConsentRepository;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
-import dasi.typing.domain.memberConsent.MemberConsent;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
@@ -25,7 +28,6 @@ import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -43,13 +45,10 @@ public class MemberService {
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
 
-  private static final Pattern INVALID_CV_PATTERN = Pattern.compile(".*[ㄱ-ㅎㅏ-ㅣ].*");
-  private static final Pattern ALLOWED_NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]+$");
-
   public String signIn(String tempToken) {
     String kakaoId = getKakaoIdFromTempToken(tempToken);
     validateRegisteredMember(kakaoId);
-    return jwtTokenProvider.generateToken(kakaoId).getAccessToken();
+    return jwtTokenProvider.generateToken(kakaoId).accessToken();
   }
 
   @Transactional
@@ -57,21 +56,18 @@ public class MemberService {
 
     String kakaoId = getKakaoIdFromTempToken(tempToken);
     String nickname = request.getNickname();
-
-    Member member = Member.builder()
-        .kakaoId(kakaoId)
-        .nickname(nickname)
-        .build();
+    Member member = new Member(kakaoId, nickname);
 
     List<Consent> consents = consentRepository.findByTypeIn(request.getAgreements());
 
-    for (Consent consent : consents) {
-      MemberConsent memberConsent = MemberConsent.of(consent);
-      member.addConsent(memberConsent);
+    if (consents.size() != REQUIRED_CONSENT_COUNT) {
+      throw new CustomException(INSUFFICIENT_CONSENT_EXCEPTION);
     }
 
+    member.addConsent(consents);
     memberRepository.save(member);
-    return jwtTokenProvider.generateToken(kakaoId).getAccessToken();
+
+    return jwtTokenProvider.generateToken(kakaoId).accessToken();
   }
 
   public void validateNickname(MemberNicknameServiceRequest request) {
@@ -105,10 +101,10 @@ public class MemberService {
     }
 
     JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
-    RefreshToken newRefreshToken = refreshToken.updateValue(jwtToken.getRefreshToken());
+    RefreshToken newRefreshToken = refreshToken.updateValue(jwtToken.refreshToken());
     refreshTokenRepository.save(newRefreshToken);
 
-    return jwtToken.getAccessToken();
+    return jwtToken.accessToken();
   }
 
   private String getKakaoIdFromTempToken(String tempToken) {

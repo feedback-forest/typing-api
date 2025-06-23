@@ -1,5 +1,7 @@
 package dasi.typing.api.controller.member;
 
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+
 import dasi.typing.api.controller.member.request.MemberCreateRequest;
 import dasi.typing.api.controller.member.request.MemberNicknameRequest;
 import dasi.typing.api.controller.member.response.NicknameResponse;
@@ -30,9 +32,10 @@ public class MemberController {
   @GetMapping("/api/v1/members")
   public ResponseEntity<ApiResponse<Boolean>> signIn(
       @AuthenticationPrincipal GuestPrincipal guest) {
-    String accessToken = memberService.signIn(guest.getId());
+
+    String accessToken = memberService.signIn(guest.id());
     return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
         .body(ApiResponse.success(true));
   }
 
@@ -40,9 +43,10 @@ public class MemberController {
   public ResponseEntity<ApiResponse<Boolean>> signUp(
       @AuthenticationPrincipal GuestPrincipal guest,
       @RequestBody MemberCreateRequest request) {
-    String accessToken = memberService.signUp(guest.getId(), request.toServiceRequest());
+
+    String accessToken = memberService.signUp(guest.id(), request.toServiceRequest());
     return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
         .body(ApiResponse.success(true));
   }
 
@@ -55,19 +59,20 @@ public class MemberController {
   @GetMapping("/api/v1/members/nickname/random")
   public ApiResponse<NicknameResponse> generateRandomNickname() {
     String nickname = nicknameService.generate();
-    return ApiResponse.success(NicknameResponse.builder()
-        .nickname(nickname).build());
+    return ApiResponse.success(new NicknameResponse(nickname));
   }
 
   @PostMapping("/api/v1/members/reissue")
   @PreAuthorize("hasRole('USER')")
   public ResponseEntity<ApiResponse<Boolean>> reissue() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String kakaoId = (String) authentication.getPrincipal();
 
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    String kakaoId = (String) authentication.getPrincipal();
     String accessToken = memberService.reissue(kakaoId);
+
     return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
         .body(ApiResponse.success(true));
   }
 }

@@ -262,10 +262,7 @@ class TypingRepositoryTest {
   }
 
   private Member createMember(String kakaoId, String nickname) {
-    return memberRepository.save(Member.builder()
-        .kakaoId(kakaoId)
-        .nickname(nickname).build()
-    );
+    return memberRepository.save(new Member(kakaoId, nickname));
   }
 
   private Phrase createPhrase() {

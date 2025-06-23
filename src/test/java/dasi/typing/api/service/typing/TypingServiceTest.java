@@ -196,9 +196,7 @@ class TypingServiceTest {
   }
 
   private static Member createMember(String kakaoId, String nickname) {
-    return Member.builder()
-        .kakaoId(kakaoId)
-        .nickname(nickname).build();
+    return new Member(kakaoId, nickname);
   }
 
   private static TypingCreateRequest createRequest(Phrase savedPhrase) {

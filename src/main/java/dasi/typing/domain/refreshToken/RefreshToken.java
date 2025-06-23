@@ -1,6 +1,5 @@
 package dasi.typing.domain.refreshToken;
 
-import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
@@ -16,8 +15,7 @@ public class RefreshToken {
 
   private String token;
 
-  @Builder
-  private RefreshToken(String kakaoId, String token) {
+  public RefreshToken(String kakaoId, String token) {
     this.kakaoId = kakaoId;
     this.token = token;
   }

@@ -28,7 +28,7 @@ class RefreshTokenTest {
     // given
     String kakaoId = "1234567890";
     JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
-    String refreshToken = jwtToken.getRefreshToken();
+    String refreshToken = jwtToken.refreshToken();
 
     // when
     redisTemplate.opsForValue().set(kakaoId, refreshToken, Duration.ofSeconds(1));

@@ -1,5 +1,9 @@
 package dasi.typing.api.service.oauth;
 
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.CommonConstant.TOKEN_HEADER;
+import static dasi.typing.utils.CommonConstant.USER_INFO_URL;
+
 import dasi.typing.api.service.oauth.info.KakaoUserInfo;
 import dasi.typing.api.service.oauth.request.KakaoUserCreateServiceRequest;
 import dasi.typing.exception.Code;
@@ -21,10 +25,6 @@ public class CustomOAuth2UserService extends OidcUserService {
 
   private final RestClient restClient;
 
-  private final String USER_INFO_URL = "https://kapi.kakao.com/v1/oidc/userinfo";
-  private final String HEADER_NAME = "Authorization";
-  private final String HEADER_VALUE = "Bearer ";
-
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
 
@@ -43,7 +43,7 @@ public class CustomOAuth2UserService extends OidcUserService {
 
     KakaoUserCreateServiceRequest request = restClient.get()
         .uri(USER_INFO_URL)
-        .header(HEADER_NAME, HEADER_VALUE + accessToken)
+        .header(TOKEN_HEADER, BEARER_PREFIX + accessToken)
         .retrieve()
         .body(KakaoUserCreateServiceRequest.class);
 

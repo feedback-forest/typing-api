@@ -9,6 +9,8 @@ import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -42,9 +44,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 class MemberControllerTest extends ControllerTestSupport {
-
-  private final String BEARER_PREFIX = "Bearer ";
-  private final String REDIS_KEY_PREFIX = "auth:temp-token:";
 
   private final String KAKAO_ID = "kakaoId";
   private final String NICKNAME = "nickname";
@@ -241,8 +240,7 @@ class MemberControllerTest extends ControllerTestSupport {
     given(nicknameService.generate()).willReturn(RANDOM_NICKNAME);
 
     // when
-    String expectedJson = createExpectedSuccessJson(
-        NicknameResponse.builder().nickname(RANDOM_NICKNAME).build());
+    String expectedJson = createExpectedSuccessJson(new NicknameResponse(RANDOM_NICKNAME));
 
     // then
     mockMvc.perform(
