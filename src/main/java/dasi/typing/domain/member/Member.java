@@ -1,6 +1,9 @@
 package dasi.typing.domain.member;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import dasi.typing.domain.BaseEntity;
+import dasi.typing.domain.consent.Consent;
 import dasi.typing.domain.memberConsent.MemberConsent;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,14 +15,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = PROTECTED)
 public class Member extends BaseEntity {
 
   @Id
@@ -36,13 +37,14 @@ public class Member extends BaseEntity {
   @JoinColumn(name = "member_id")
   private List<MemberConsent> agreements = new ArrayList<>();
 
-  @Builder
-  private Member(String kakaoId, String nickname) {
+  public Member(String kakaoId, String nickname) {
     this.kakaoId = kakaoId;
     this.nickname = nickname;
   }
 
-  public void addConsent(MemberConsent memberConsent) {
-    agreements.add(memberConsent);
+  public void addConsent(List<Consent> consents) {
+    for (Consent consent : consents) {
+      agreements.add(MemberConsent.of(consent));
+    }
   }
 }

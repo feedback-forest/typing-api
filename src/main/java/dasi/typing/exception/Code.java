@@ -34,7 +34,10 @@ public enum Code {
   INVALID_REFRESH_TOKEN(5002, "유효하지 않은 REFRESH_JWT 서명입니다."),
   EXPIRED_REFRESH_TOKEN(5003, "만료된 REFRESH_JWT 토큰입니다."),
   UNSUPPORTED_JWT_TOKEN(5004, "지원되지 않는 JWT 토큰 형식입니다."),
-  EMPTY_JWT_TOKEN(5005, "토큰이 비어있거나 제공되지 않았습니다.");
+  EMPTY_JWT_TOKEN(5005, "토큰이 비어있거나 제공되지 않았습니다."),
+
+  // Consent
+  INSUFFICIENT_CONSENT_EXCEPTION(6000, "3가지 동의가 모두 필요합니다. 동의 후 이용해주세요.");
 
   private final Integer code;
   private final String message;
