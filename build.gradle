@@ -100,10 +100,7 @@ jacocoTestReport {
         csv.destination file(project.layout.buildDirectory.dir("jacoco/index.csv")) as File
         html.destination file(project.layout.buildDirectory.dir("jacoco/index.html")) as File
     }
-    def Qdomains = []
-    for (qPattern in '*.QA'..'*.QZ') {
-        Qdomains.add(qPattern + '*')
-    }
+
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
@@ -112,7 +109,9 @@ jacocoTestReport {
                     '**/*Application*',
                     '**/exception/**',
                     '**/config/**',
-            ] + Qdomains)
+                    '**/Q*.class',
+                    '**/generated/**'
+            ])
         }))
     }
 
@@ -120,10 +119,27 @@ jacocoTestReport {
 }
 
 jacocoTestCoverageVerification {
-    def Qdomains = []
-    for (qPattern in '*.QA'..'*.QZ') {
-        Qdomains.add(qPattern + '*')
+    dependsOn jacocoTestReport
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**.request.**',
+                    '**.response.**',
+                    '**.event.**',
+                    '**.*InitData*',
+                    '**/*Application*',
+                    '**.exception/**',
+                    '**.service.alarm.**',
+                    '**.aop.**',
+                    '**.config.**',
+                    '**.MemberRole*',
+                    '**/Q*.class',
+                    '**/generated/**'
+            ])
+        }))
     }
+
     violationRules {
         rule {
             enabled = true;
@@ -151,8 +167,10 @@ jacocoTestCoverageVerification {
                     '**.service.alarm.**',
                     '**.aop.**',
                     '**.config.**',
-                    '**.MemberRole*'
-            ] + Qdomains
+                    '**.MemberRole*',
+                    '**/Q*.class',
+                    '**/generated/**'
+            ]
         }
     }
 }
