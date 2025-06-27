@@ -1,15 +1,5 @@
 package dasi.typing.api.service.member.request;
 
-import lombok.Builder;
-import lombok.Getter;
+public record MemberNicknameServiceRequest(String nickname) {
 
-@Getter
-public class MemberNicknameServiceRequest {
-
-  private String nickname;
-
-  @Builder
-  private MemberNicknameServiceRequest(String nickname) {
-    this.nickname = nickname;
-  }
 }

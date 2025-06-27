@@ -1,8 +1,8 @@
 package dasi.typing.api.service.oauth;
 
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
-import static dasi.typing.utils.CommonConstant.TOKEN_HEADER;
-import static dasi.typing.utils.CommonConstant.USER_INFO_URL;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
+import static dasi.typing.utils.ConstantUtil.USER_INFO_URL;
 
 import dasi.typing.api.service.oauth.info.KakaoUserInfo;
 import dasi.typing.api.service.oauth.request.KakaoUserCreateServiceRequest;

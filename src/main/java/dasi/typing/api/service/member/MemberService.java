@@ -1,22 +1,15 @@
 package dasi.typing.api.service.member;
 
-import static dasi.typing.exception.Code.ALREADY_EXIST_NICKNAME;
 import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
-import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
-import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
-import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
-import static dasi.typing.utils.CommonConstant.REQUIRED_CONSENT_COUNT;
-import static dasi.typing.utils.PatternUtil.ALLOWED_NICKNAME_PATTERN;
-import static dasi.typing.utils.PatternUtil.INVALID_CV_PATTERN;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.length;
+import static dasi.typing.utils.ConstantUtil.REQUIRED_CONSENT_COUNT;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
 import dasi.typing.api.service.member.request.MemberNicknameServiceRequest;
+import dasi.typing.api.service.member.validator.NicknameValidator;
 import dasi.typing.domain.consent.Consent;
 import dasi.typing.domain.consent.ConsentRepository;
 import dasi.typing.domain.member.Member;
@@ -39,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
   private final MemberRepository memberRepository;
+  private final NicknameValidator nicknameValidator;
   private final ConsentRepository consentRepository;
   private final RefreshTokenRepository refreshTokenRepository;
 
@@ -71,22 +65,11 @@ public class MemberService {
   }
 
   public void validateNickname(MemberNicknameServiceRequest request) {
-
-    String nickname = request.getNickname();
-
-    if (isEmpty(nickname) || length(nickname) < 2
-        || length(nickname) > 12) {
-      throw new CustomException(INVALID_LENGTH_NICKNAME);
-    }
-    if (INVALID_CV_PATTERN.matcher(nickname).matches()) {
-      throw new CustomException(INVALID_CV_NICKNAME);
-    }
-    if (!ALLOWED_NICKNAME_PATTERN.matcher(nickname).matches()) {
-      throw new CustomException(INVALID_CHARACTER_NICKNAME);
-    }
-    if (validateAlreadyExistNickname(nickname)) {
-      throw new CustomException(ALREADY_EXIST_NICKNAME);
-    }
+    String nickname = request.nickname();
+    nicknameValidator.validateLength(nickname);
+    nicknameValidator.validateNoConsonantVowelOnly(nickname);
+    nicknameValidator.validateAllowedCharacters(nickname);
+    nicknameValidator.validateNotDuplicated(nickname);
   }
 
   @Transactional
@@ -107,18 +90,15 @@ public class MemberService {
     return jwtToken.accessToken();
   }
 
+  private void validateRegisteredMember(String kakaoId) {
+    if (memberRepository.existsByKakaoId(kakaoId)) {
+      return;
+    }
+    throw new CustomException(KAKAO_ACCOUNT_NOT_REGISTERED);
+  }
+
   private String getKakaoIdFromTempToken(String tempToken) {
     return Optional.ofNullable(redisTemplate.opsForValue().get(tempToken))
         .orElseThrow(() -> new CustomException(INVALID_TEMP_TOKEN));
-  }
-
-  private boolean validateAlreadyExistNickname(String nickname) {
-    return memberRepository.existsByNickname(nickname);
-  }
-
-  private void validateRegisteredMember(String kakaoId) {
-    if (!memberRepository.existsByKakaoId(kakaoId)) {
-      throw new CustomException(KAKAO_ACCOUNT_NOT_REGISTERED);
-    }
   }
 }

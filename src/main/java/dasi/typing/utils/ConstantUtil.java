@@ -5,7 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
-public class CommonConstant {
+public class ConstantUtil {
 
   // Header Prefix
   public static final String TOKEN_HEADER = "Authorization";
