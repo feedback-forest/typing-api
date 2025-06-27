@@ -6,9 +6,9 @@ import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_ACCESS_TOKEN;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.UNSUPPORTED_JWT_TOKEN;
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
-import static dasi.typing.utils.CommonConstant.TOKEN_EXPIRE_TIME;
-import static dasi.typing.utils.CommonConstant.TOKEN_REFRESH_TIME;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.TOKEN_EXPIRE_TIME;
+import static dasi.typing.utils.ConstantUtil.TOKEN_REFRESH_TIME;
 
 import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
