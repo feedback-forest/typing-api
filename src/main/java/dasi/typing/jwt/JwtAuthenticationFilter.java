@@ -1,5 +1,9 @@
 package dasi.typing.jwt;
 
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.CommonConstant.REISSUE_URI;
+import static dasi.typing.utils.CommonConstant.TOKEN_HEADER;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,18 +25,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
 
-  private static final String TOKEN_HEADER = "Authorization";
-  private static final String TOKEN_PREFIX = "Bearer ";
-  private static final String REISSUE_URI = "/api/v1/members/reissue";
-
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain
+  ) throws ServletException, IOException {
 
     String token = resolveToken(request);
     String requestURI = request.getRequestURI();
 
-    if (StringUtils.isNotEmpty(token) && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
+    if (StringUtils.isNotEmpty(token)
+        && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
+
       String kakaoId = jwtTokenProvider.getKakaoId(token);
       List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
 
@@ -48,8 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public String resolveToken(HttpServletRequest request) {
     String bearerToken = request.getHeader(TOKEN_HEADER);
 
-    if (StringUtils.isNotEmpty(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)) {
-      return bearerToken.substring(TOKEN_PREFIX.length());
+    if (StringUtils.isNotEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+      return bearerToken.substring(BEARER_PREFIX.length());
     }
     return null;
   }

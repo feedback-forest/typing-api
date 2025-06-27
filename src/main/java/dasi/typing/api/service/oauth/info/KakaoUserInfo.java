@@ -3,7 +3,6 @@ package dasi.typing.api.service.oauth.info;
 import static lombok.AccessLevel.PROTECTED;
 
 import dasi.typing.domain.member.Member;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,16 +16,13 @@ public class KakaoUserInfo {
 
   private String nickname;
 
-  @Builder
-  private KakaoUserInfo(String sub, String name, String nickname) {
+  public KakaoUserInfo(String sub, String name, String nickname) {
     this.sub = sub;
     this.name = name;
     this.nickname = nickname;
   }
 
   public Member toEntity() {
-    return Member.builder()
-        .kakaoId(sub)
-        .nickname(nickname).build();
+    return new Member(sub, nickname);
   }
 }

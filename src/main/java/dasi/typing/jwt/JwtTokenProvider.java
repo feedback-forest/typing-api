@@ -6,6 +6,9 @@ import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_ACCESS_TOKEN;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.UNSUPPORTED_JWT_TOKEN;
+import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.CommonConstant.TOKEN_EXPIRE_TIME;
+import static dasi.typing.utils.CommonConstant.TOKEN_REFRESH_TIME;
 
 import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
@@ -29,10 +32,6 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
   private final Key key;
-  private static final String BEARER_TYPE = "Bearer";
-  private static final long TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 3;
-  private static final long TOKEN_REFRESH_TIME = 1000 * 60 * 60 * 24 * 7;
-
   private final RefreshTokenRepository refreshTokenRepository;
 
   public JwtTokenProvider(@Value("${spring.jwt.secret}") String secretKey,
@@ -62,14 +61,9 @@ public class JwtTokenProvider {
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
 
-    refreshTokenRepository.save(RefreshToken.builder()
-        .kakaoId(kakaoId)
-        .token(refreshToken).build());
+    refreshTokenRepository.save(new RefreshToken(kakaoId, refreshToken));
 
-    return JwtToken.builder()
-        .grantType(BEARER_TYPE)
-        .accessToken(accessToken)
-        .refreshToken(refreshToken).build();
+    return new JwtToken(BEARER_PREFIX.trim(), accessToken, refreshToken);
   }
 
   public boolean validateAccessToken(String token) {
@@ -115,10 +109,6 @@ public class JwtTokenProvider {
 
   public String getKakaoId(final String token) {
     return getClaims(token).get("kakaoId", String.class);
-  }
-
-  public String getRole(final String token) {
-    return getClaims(token).get("role", String.class);
   }
 
   private Claims createClaims(String kakaoId, Date now, Date accessTokenExpiresIn) {

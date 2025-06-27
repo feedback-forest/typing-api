@@ -1,15 +1,20 @@
 package dasi.typing.api.service.member;
 
+import static dasi.typing.domain.consent.ConsentType.AGE_LIMIT_POLICY;
 import static dasi.typing.domain.consent.ConsentType.PRIVACY_POLICY;
 import static dasi.typing.domain.consent.ConsentType.TERMS_OF_SERVICE;
+import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
+import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
+import dasi.typing.domain.consent.Consent;
+import dasi.typing.domain.consent.ConsentRepository;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.memberConsent.MemberConsentRepository;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
-import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtTokenProvider;
 import java.util.List;
@@ -26,10 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class MemberServiceTest {
 
   @Autowired
@@ -39,16 +42,25 @@ class MemberServiceTest {
   private MemberRepository memberRepository;
 
   @Autowired
+  private MemberConsentRepository memberConsentRepository;
+
+  @Autowired
+  private ConsentRepository consentRepository;
+
+  @Autowired
   private RefreshTokenRepository refreshTokenRepository;
 
   @Autowired
   private RedisTemplate<String, String> redisTemplate;
+
   @Autowired
   private JwtTokenProvider jwtTokenProvider;
 
   @AfterEach
   void tearDown() {
+    memberConsentRepository.deleteAllInBatch();
     memberRepository.deleteAllInBatch();
+    consentRepository.deleteAllInBatch();
     refreshTokenRepository.deleteAll();
   }
 
@@ -61,6 +73,7 @@ class MemberServiceTest {
     String tempToken = UUID.randomUUID().toString();
     String kakaoId = "0000000000";
 
+    consentSetup();
     saveKakaoIdInRedis(tempToken, kakaoId);
 
     CountDownLatch latch = new CountDownLatch(threadCount);
@@ -69,7 +82,7 @@ class MemberServiceTest {
 
     MemberCreateServiceRequest request = MemberCreateServiceRequest.builder()
         .nickname(nickname)
-        .agreements(List.of(TERMS_OF_SERVICE, PRIVACY_POLICY)).build();
+        .agreements(List.of(TERMS_OF_SERVICE, PRIVACY_POLICY, AGE_LIMIT_POLICY)).build();
 
     // when
     ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -102,7 +115,7 @@ class MemberServiceTest {
     // when & then
     assertThatThrownBy(() -> memberService.reissue(kakaoId))
         .isInstanceOf(CustomException.class)
-        .hasMessageContaining(Code.EXPIRED_REFRESH_TOKEN.getMessage());
+        .hasMessageContaining(EXPIRED_REFRESH_TOKEN.getMessage());
   }
 
   @Test
@@ -110,15 +123,13 @@ class MemberServiceTest {
   void refreshTokenInvalidTest() {
     // given
     String kakaoId = "kakaoId123";
-    RefreshToken refreshToken = RefreshToken.builder()
-        .kakaoId(kakaoId)
-        .token("INVALID_REFRESH_TOKEN").build();
+    RefreshToken refreshToken = new RefreshToken(kakaoId, "INVALID_REFRESH_TOKEN");
     refreshTokenRepository.save(refreshToken);
 
     // when & then
     assertThatThrownBy(() -> memberService.reissue(kakaoId))
         .isInstanceOf(CustomException.class)
-        .hasMessageContaining(Code.INVALID_REFRESH_TOKEN.getMessage());
+        .hasMessageContaining(INVALID_REFRESH_TOKEN.getMessage());
   }
 
   @Test
@@ -126,12 +137,12 @@ class MemberServiceTest {
   void accessTokenReissueByRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    String refreshToken = jwtTokenProvider.generateToken(kakaoId).getRefreshToken();
+    String refreshToken = jwtTokenProvider.generateToken(kakaoId).refreshToken();
 
     // when
     String accessToken = memberService.reissue(kakaoId);
     RefreshToken newRefreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
-        () -> new CustomException(Code.INVALID_REFRESH_TOKEN)
+        () -> new CustomException(INVALID_REFRESH_TOKEN)
     );
 
     // then
@@ -147,5 +158,13 @@ class MemberServiceTest {
         10,
         TimeUnit.SECONDS
     );
+  }
+
+  private void consentSetup() {
+    consentRepository.saveAll(List.of(
+        new Consent(TERMS_OF_SERVICE),
+        new Consent(PRIVACY_POLICY),
+        new Consent(AGE_LIMIT_POLICY)
+    ));
   }
 }

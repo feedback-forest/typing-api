@@ -1,5 +1,9 @@
 package dasi.typing.handler;
 
+import static dasi.typing.utils.CommonConstant.LOGIN_REDIRECT_URL;
+import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
+import static dasi.typing.utils.CommonConstant.TEMP_TOKEN_TTL;
+
 import dasi.typing.api.service.oauth.CustomOidcUser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -24,12 +27,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
   @Value("${front.server}")
   private String FRONT_SERVER;
 
-  private final int TTL = 3;
-  private final String REDIRECT_URL = "/typing/login/callback";
-  private final String REDIS_KEY_PREFIX = "auth:temp-token:";
-
+  private final RedirectStrategy redirectStrategy;
   private final RedisTemplate<String, String> redisTemplate;
-  private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
   @Override
   public void onAuthenticationSuccess(
@@ -48,7 +47,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     redisTemplate.opsForValue().set(
         redisKey,
         kakaoId,
-        TTL,
+        TEMP_TOKEN_TTL,
         TimeUnit.MINUTES
     );
 
@@ -57,7 +56,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
   private String getTargetUrl(String tempToken) {
     return UriComponentsBuilder
-        .fromUriString(FRONT_SERVER + REDIRECT_URL)
+        .fromUriString(FRONT_SERVER + LOGIN_REDIRECT_URL)
         .queryParam("success", tempToken)
         .build().toUriString();
   }

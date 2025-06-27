@@ -26,13 +26,10 @@ class RefreshTokenRepositoryTest {
     // given
     String kakaoId = "1234567890";
     JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
-    String token = jwtToken.getRefreshToken();
+    String token = jwtToken.refreshToken();
 
     // when
-    RefreshToken savedRefreshToken = refreshTokenRepository.save(RefreshToken.builder()
-        .kakaoId(kakaoId)
-        .token(token).build());
-
+    RefreshToken savedRefreshToken = refreshTokenRepository.save(new RefreshToken(kakaoId, token));
     RefreshToken refreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
         () -> new CustomException(Code.EXPIRED_REFRESH_TOKEN)
     );

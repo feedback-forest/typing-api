@@ -21,8 +21,4 @@ public final class DateTimeUtil {
   public static LocalDateTime getNextMonthStartDate(LocalDate now) {
     return now.plusMonths(1).withDayOfMonth(1).atTime(0, 0, 0);
   }
-
-  public static boolean isInRange(LocalDateTime start, LocalDateTime date, LocalDateTime end) {
-    return !date.isBefore(start) && !date.isAfter(end);
-  }
 }
