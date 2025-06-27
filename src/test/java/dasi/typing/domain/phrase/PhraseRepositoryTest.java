@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -21,9 +24,22 @@ class PhraseRepositoryTest {
     phraseRepository.deleteAllInBatch();
   }
 
-  @Test
-  @DisplayName("랜덤으로 20개의 문장들을 조회할 수 있다.")
-  void findRandom20PhraseTest() {
+  private static Stream<Arguments> findRandomPhraseScenarios() {
+    return Stream.of(
+        Arguments.of(1, 1),
+        Arguments.of(3, 3),
+        Arguments.of(5, 5),
+        Arguments.of(10, 10),
+        Arguments.of(15, 15),
+        Arguments.of(20, 20),
+        Arguments.of(25, 25)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("findRandomPhraseScenarios")
+  @DisplayName("파라미터로 주어진 문장의 개수만큼 조회할 수 있다.")
+  void getRandomPhraseTest(int phraseCount, int expectedSize) {
     // given
     List<Phrase> phrases = new ArrayList<>();
     for (int i = 1; i <= 25; i++) {
@@ -34,10 +50,10 @@ class PhraseRepositoryTest {
     // when
     List<Long> allIds = phrases.stream().map(Phrase::getId).toList();
 
-    List<Long> firstResult = phraseRepository.getRandom20Phrases()
+    List<Long> firstResult = phraseRepository.getRandomPhrases(phraseCount)
         .stream().map(Phrase::getId).toList();
 
-    List<Long> secondResult = phraseRepository.getRandom20Phrases()
+    List<Long> secondResult = phraseRepository.getRandomPhrases(phraseCount)
         .stream().map(Phrase::getId).toList();
 
     // then
@@ -46,7 +62,7 @@ class PhraseRepositoryTest {
         .containsAll(secondResult);
 
     assertThat(firstResult)
-        .hasSize(20)
+        .hasSize(expectedSize)
         .hasSameSizeAs(secondResult)
         .isNotEqualTo(secondResult);
   }

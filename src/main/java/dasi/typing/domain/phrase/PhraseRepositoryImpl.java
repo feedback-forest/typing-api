@@ -14,14 +14,14 @@ public class PhraseRepositoryImpl implements PhraseRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<Phrase> getRandom20Phrases() {
+  public List<Phrase> getRandomPhrases(int phraseCount) {
 
     NumberExpression<Double> rand = Expressions.numberTemplate(Double.class, "rand");
 
     return queryFactory
         .selectFrom(phrase)
         .orderBy(rand.asc())
-        .limit(20)
+        .limit(phraseCount)
         .fetch();
   }
 }
