@@ -1,6 +1,6 @@
 package dasi.typing.handler;
 
-import static dasi.typing.utils.CommonConstant.LOGIN_REDIRECT_URL;
+import static dasi.typing.utils.ConstantUtil.LOGIN_REDIRECT_URL;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -9,8 +9,8 @@ import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
-import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -171,8 +171,7 @@ class MemberControllerTest extends ControllerTestSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname("nickname").build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest("nickname");
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);
@@ -211,8 +210,7 @@ class MemberControllerTest extends ControllerTestSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname(nickname).build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest(nickname);
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);

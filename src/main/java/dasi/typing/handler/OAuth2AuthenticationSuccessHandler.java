@@ -1,8 +1,8 @@
 package dasi.typing.handler;
 
-import static dasi.typing.utils.CommonConstant.LOGIN_REDIRECT_URL;
-import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
-import static dasi.typing.utils.CommonConstant.TEMP_TOKEN_TTL;
+import static dasi.typing.utils.ConstantUtil.LOGIN_REDIRECT_URL;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
+import static dasi.typing.utils.ConstantUtil.TEMP_TOKEN_TTL;
 
 import dasi.typing.api.service.oauth.CustomOidcUser;
 import jakarta.servlet.ServletException;

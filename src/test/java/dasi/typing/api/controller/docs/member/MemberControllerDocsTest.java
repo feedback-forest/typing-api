@@ -9,8 +9,8 @@ import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
-import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -265,8 +265,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname(NICKNAME).build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest(NICKNAME);
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);
@@ -312,8 +311,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname("abcdefghijklmnop").build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest("abcdefghijklmnop");
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);
@@ -359,8 +357,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname("abcdeㄹㅇ").build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest("abcdeㄹㅇ");
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);
@@ -406,8 +403,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname("abcde*&^").build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest("abcde*&^");
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);
@@ -453,8 +449,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
         .given(memberService)
         .validateNickname(any(MemberNicknameServiceRequest.class));
 
-    MemberNicknameServiceRequest request = MemberNicknameServiceRequest.builder()
-        .nickname("dragon").build();
+    MemberNicknameServiceRequest request = new MemberNicknameServiceRequest("dragon");
 
     // when
     String requestJson = objectMapper.writeValueAsString(request);

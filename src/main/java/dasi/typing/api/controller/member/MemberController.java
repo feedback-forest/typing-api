@@ -1,6 +1,6 @@
 package dasi.typing.api.controller.member;
 
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
 
 import dasi.typing.api.controller.member.request.MemberCreateRequest;
 import dasi.typing.api.controller.member.request.MemberNicknameRequest;

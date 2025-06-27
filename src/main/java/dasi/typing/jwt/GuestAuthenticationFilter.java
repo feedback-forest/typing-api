@@ -1,8 +1,8 @@
 package dasi.typing.jwt;
 
-import static dasi.typing.utils.CommonConstant.BEARER_PREFIX;
-import static dasi.typing.utils.CommonConstant.REDIS_KEY_PREFIX;
-import static dasi.typing.utils.CommonConstant.TOKEN_HEADER;
+import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
+import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;

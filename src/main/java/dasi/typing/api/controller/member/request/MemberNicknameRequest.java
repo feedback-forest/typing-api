@@ -9,8 +9,6 @@ public class MemberNicknameRequest {
   private String nickname;
 
   public MemberNicknameServiceRequest toServiceRequest() {
-    return MemberNicknameServiceRequest.builder()
-        .nickname(nickname).build();
+    return new MemberNicknameServiceRequest(nickname);
   }
-
 }
