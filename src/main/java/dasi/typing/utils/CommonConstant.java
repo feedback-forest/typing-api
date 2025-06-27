@@ -30,7 +30,10 @@ public class CommonConstant {
   public static final String USER_INFO_URL = "https://kapi.kakao.com/v1/oidc/userinfo";
 
   // JWT Token Expiration and Refresh Times
-  public static final long TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 3;
-  public static final long TOKEN_REFRESH_TIME = 1000 * 60 * 60 * 24 * 7;
+  public static final long TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 3L;
+  public static final long TOKEN_REFRESH_TIME = 1000 * 60 * 60 * 24 * 7L;
+
+  // Phrase Count for Random Phrases
+  public static final int PHRASE_COUNT = 20;
 
 }

@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface PhraseRepositoryCustom {
 
-  List<Phrase> getRandom20Phrases();
+  List<Phrase> getRandomPhrases(int phraseCount);
 
 }
