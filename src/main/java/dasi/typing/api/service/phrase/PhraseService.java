@@ -1,6 +1,6 @@
 package dasi.typing.api.service.phrase;
 
-import static dasi.typing.utils.CommonConstant.PHRASE_COUNT;
+import static dasi.typing.utils.ConstantUtil.PHRASE_COUNT;
 
 import dasi.typing.api.controller.phrase.response.PhraseResponse;
 import dasi.typing.domain.phrase.PhraseRepository;

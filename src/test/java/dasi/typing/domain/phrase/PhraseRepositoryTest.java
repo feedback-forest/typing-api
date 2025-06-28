@@ -42,7 +42,7 @@ class PhraseRepositoryTest {
   void getRandomPhraseTest(int phraseCount, int expectedSize) {
     // given
     List<Phrase> phrases = new ArrayList<>();
-    for (int i = 1; i <= 25; i++) {
+    for (int i = 1; i <= 30; i++) {
       phrases.add(createPhrase(String.valueOf(i), "문장 " + i, "작가 " + i));
     }
     phraseRepository.saveAll(phrases);
