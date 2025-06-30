@@ -8,7 +8,7 @@ import dasi.typing.api.controller.member.response.NicknameResponse;
 import dasi.typing.api.service.member.MemberService;
 import dasi.typing.api.service.member.NicknameService;
 import dasi.typing.exception.ApiResponse;
-import dasi.typing.jwt.GuestPrincipal;
+import dasi.typing.filter.GuestPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;

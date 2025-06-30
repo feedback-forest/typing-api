@@ -14,6 +14,7 @@ import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.response.ClaimsResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -22,6 +23,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import java.security.Key;
 import java.util.Date;
 import java.util.UUID;
@@ -41,9 +43,8 @@ public class JwtTokenProvider {
     this.refreshTokenRepository = refreshTokenRepository;
   }
 
-  public JwtToken generateToken(String kakaoId) {
+  public JwtToken generateToken(String kakaoId, Date now) {
 
-    Date now = new Date();
     Date accessTokenExpiresIn = new Date(now.getTime() + TOKEN_EXPIRE_TIME);
     Date refreshTokenExpiresIn = new Date(now.getTime() + TOKEN_REFRESH_TIME);
 
@@ -70,7 +71,7 @@ public class JwtTokenProvider {
     try {
       Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
       return true;
-    } catch (SecurityException | MalformedJwtException e) {
+    } catch (SecurityException | SignatureException | MalformedJwtException e) {
       throw new CustomException(INVALID_ACCESS_TOKEN);
     } catch (ExpiredJwtException e) {
       throw new CustomException(EXPIRED_ACCESS_TOKEN);
@@ -85,7 +86,7 @@ public class JwtTokenProvider {
     try {
       Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
       return true;
-    } catch (SecurityException | MalformedJwtException e) {
+    } catch (SecurityException | SignatureException | MalformedJwtException e) {
       throw new CustomException(INVALID_REFRESH_TOKEN);
     } catch (ExpiredJwtException e) {
       throw new CustomException(EXPIRED_REFRESH_TOKEN);
@@ -96,19 +97,20 @@ public class JwtTokenProvider {
     }
   }
 
-  public Claims getClaims(String token) {
+  public ClaimsResponse getClaimsResponse(String token) {
     try {
-      return Jwts.parserBuilder()
+      Claims claims = Jwts.parserBuilder()
           .setSigningKey(key)
           .build()
           .parseClaimsJws(token).getBody();
+      return new ClaimsResponse(claims, false);
     } catch (ExpiredJwtException e) {
-      return e.getClaims();
+      return new ClaimsResponse(e.getClaims(), true);
     }
   }
 
   public String getKakaoId(final String token) {
-    return getClaims(token).get("kakaoId", String.class);
+    return getClaimsResponse(token).claims().get("kakaoId", String.class);
   }
 
   private Claims createClaims(String kakaoId, Date now, Date accessTokenExpiresIn) {

@@ -7,6 +7,7 @@ import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
 import java.time.Duration;
+import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ class RefreshTokenTest {
   void redisRefreshTokenTTLExpirationTest() throws Exception {
     // given
     String kakaoId = "1234567890";
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
     String refreshToken = jwtToken.refreshToken();
 
     // when

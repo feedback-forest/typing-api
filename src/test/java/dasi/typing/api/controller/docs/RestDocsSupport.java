@@ -18,7 +18,7 @@ import dasi.typing.api.service.ranking.RankingService;
 import dasi.typing.api.service.typing.TypingService;
 import dasi.typing.config.RestDocsConfig;
 import dasi.typing.config.TestSecurityConfig;
-import dasi.typing.jwt.GuestPrincipal;
+import dasi.typing.filter.GuestPrincipal;
 import dasi.typing.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;

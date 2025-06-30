@@ -26,7 +26,9 @@ import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -94,8 +96,7 @@ class MemberServiceTest {
     // when
     Code result = assertThrows(CustomException.class, () -> {
       memberService.signIn(invalidTempToken);
-    })
-        .getErrorCode();
+    }).getErrorCode();
 
     // then
     assertThat(result)
@@ -266,10 +267,13 @@ class MemberServiceTest {
     // given
     String kakaoId = "1234567890";
 
-    // when & then
-    assertThatThrownBy(() -> memberService.reissue(kakaoId))
-        .isInstanceOf(CustomException.class)
-        .hasMessageContaining(EXPIRED_REFRESH_TOKEN.getMessage());
+    // when
+    Code expectedErrorCode = assertThrows(CustomException.class, () -> {
+      memberService.reissue(kakaoId);
+    }).getErrorCode();
+
+    // then
+    assertThat(expectedErrorCode).isEqualTo(EXPIRED_REFRESH_TOKEN);
   }
 
   @Test
@@ -280,10 +284,27 @@ class MemberServiceTest {
     RefreshToken refreshToken = new RefreshToken(kakaoId, "INVALID_REFRESH_TOKEN");
     refreshTokenRepository.save(refreshToken);
 
+    // when
+    Code expectedErrorCode = assertThrows(CustomException.class, () -> {
+      memberService.reissue(kakaoId);
+    }).getErrorCode();
+
+    // then
+    assertThat(expectedErrorCode).isEqualTo(INVALID_REFRESH_TOKEN);
+  }
+
+  @Test
+  @DisplayName("유효한 Refresh 토큰을 검증하면 아무런 예외가 발생하지 않는다.")
+  void validRefreshTokenTest() {
+    // given
+    String kakaoId = "1234567890";
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    RefreshToken refreshToken = new RefreshToken(kakaoId, jwtToken.refreshToken());
+    refreshTokenRepository.save(refreshToken);
+
     // when & then
-    assertThatThrownBy(() -> memberService.reissue(kakaoId))
-        .isInstanceOf(CustomException.class)
-        .hasMessageContaining(INVALID_REFRESH_TOKEN.getMessage());
+    assertThatCode(() -> memberService.reissue(kakaoId))
+        .doesNotThrowAnyException();
   }
 
   @Test
@@ -291,7 +312,7 @@ class MemberServiceTest {
   void accessTokenReissueByRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    String refreshToken = jwtTokenProvider.generateToken(kakaoId).refreshToken();
+    String refreshToken = jwtTokenProvider.generateToken(kakaoId, new Date()).refreshToken();
 
     // when
     String accessToken = memberService.reissue(kakaoId);

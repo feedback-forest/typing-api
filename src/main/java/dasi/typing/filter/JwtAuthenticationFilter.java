@@ -1,9 +1,11 @@
-package dasi.typing.jwt;
+package dasi.typing.filter;
 
 import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
 import static dasi.typing.utils.ConstantUtil.REISSUE_URI;
 import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import dasi.typing.jwt.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -35,8 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     String token = resolveToken(request);
     String requestURI = request.getRequestURI();
 
-    if (StringUtils.isNotEmpty(token)
-        && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
+    if (isNotEmpty(token) && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
 
       String kakaoId = jwtTokenProvider.getKakaoId(token);
       List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public String resolveToken(HttpServletRequest request) {
     String bearerToken = request.getHeader(TOKEN_HEADER);
 
-    if (StringUtils.isNotEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+    if (isNotEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
       return bearerToken.substring(BEARER_PREFIX.length());
     }
     return null;

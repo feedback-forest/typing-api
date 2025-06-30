@@ -1,12 +1,12 @@
 package dasi.typing.api.service.oauth;
 
+import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_FOUND;
 import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
 import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
 import static dasi.typing.utils.ConstantUtil.USER_INFO_URL;
 
 import dasi.typing.api.service.oauth.info.KakaoUserInfo;
 import dasi.typing.api.service.oauth.request.KakaoUserCreateServiceRequest;
-import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
@@ -49,6 +49,6 @@ public class CustomOAuth2UserService extends OidcUserService {
 
     return Optional.ofNullable(request)
         .map(KakaoUserCreateServiceRequest::toKakaoUserInfo)
-        .orElseThrow(() -> new CustomException(Code.KAKAO_ACCOUNT_NOT_FOUND));
+        .orElseThrow(() -> new CustomException(KAKAO_ACCOUNT_NOT_FOUND));
   }
 }
