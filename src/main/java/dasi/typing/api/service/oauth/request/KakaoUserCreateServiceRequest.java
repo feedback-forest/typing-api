@@ -25,4 +25,20 @@ public class KakaoUserCreateServiceRequest {
   public KakaoUserInfo toKakaoUserInfo() {
     return new KakaoUserInfo(sub, name, nickname);
   }
+
+  public static KakaoUserCreateServiceRequest of(
+      String sub,
+      String name,
+      String nickname,
+      String email,
+      boolean verified
+  ) {
+    KakaoUserCreateServiceRequest request = new KakaoUserCreateServiceRequest();
+    request.sub = sub;
+    request.name = name;
+    request.nickname = nickname;
+    request.email = email;
+    request.emailVerified = verified;
+    return request;
+  }
 }
