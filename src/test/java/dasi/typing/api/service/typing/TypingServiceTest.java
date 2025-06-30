@@ -21,7 +21,7 @@ import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
-import dasi.typing.jwt.GuestPrincipal;
+import dasi.typing.filter.GuestPrincipal;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;

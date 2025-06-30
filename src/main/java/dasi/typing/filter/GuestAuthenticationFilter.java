@@ -1,4 +1,4 @@
-package dasi.typing.jwt;
+package dasi.typing.filter;
 
 import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
 import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
