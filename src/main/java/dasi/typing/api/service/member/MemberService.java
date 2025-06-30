@@ -2,7 +2,6 @@ package dasi.typing.api.service.member;
 
 import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
-import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
 import static dasi.typing.utils.ConstantUtil.REQUIRED_CONSENT_COUNT;
@@ -19,6 +18,7 @@ import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class MemberService {
   public String signIn(String tempToken) {
     String kakaoId = getKakaoIdFromTempToken(tempToken);
     validateRegisteredMember(kakaoId);
-    return jwtTokenProvider.generateToken(kakaoId).accessToken();
+    return jwtTokenProvider.generateToken(kakaoId, new Date()).accessToken();
   }
 
   @Transactional
@@ -61,7 +61,7 @@ public class MemberService {
     member.addConsent(consents);
     memberRepository.save(member);
 
-    return jwtTokenProvider.generateToken(kakaoId).accessToken();
+    return jwtTokenProvider.generateToken(kakaoId, new Date()).accessToken();
   }
 
   public void validateNickname(MemberNicknameServiceRequest request) {
@@ -79,11 +79,9 @@ public class MemberService {
         () -> new CustomException(EXPIRED_REFRESH_TOKEN)
     );
 
-    if (!jwtTokenProvider.validateRefreshToken(refreshToken.getToken())) {
-      throw new CustomException(INVALID_REFRESH_TOKEN);
-    }
+    jwtTokenProvider.validateRefreshToken(refreshToken.getToken());
 
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId);
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
     RefreshToken newRefreshToken = refreshToken.updateValue(jwtToken.refreshToken());
     refreshTokenRepository.save(newRefreshToken);
 
