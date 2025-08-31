@@ -46,15 +46,15 @@ public class TypingService {
       Member member = memberRepository.findByKakaoId(kakaoId)
           .orElseThrow(() -> new CustomException(Code.NOT_EXIST_MEMBER));
 
-      Typing typing = request.toEntity(phrase, member);
+      Typing savedTyping = typingRepository.save(request.toEntity(phrase, member));
 
       nickname = member.getNickname();
       rank = typingRepository.findRanking(
-          typing.getScore(),
-          typing.getMaxCpm(),
-          typing.getAcc(),
-          typing.getCreatedDate(),
-          typing.getMember().getId()
+          savedTyping.getScore(),
+          savedTyping.getMaxCpm(),
+          savedTyping.getAcc(),
+          savedTyping.getCreatedDate(),
+          savedTyping.getMember().getId()
       );
     }
 
