@@ -20,3 +20,32 @@ spring:
 logging:
   level:
     root: INFO
+
+# prometheus & actuator
+management:
+  endpoints:
+    shutdown:
+      enabled: false
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: typing-api
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+server:
+  # Session Config
+  servlet:
+    session:
+      timeout: 60m
+  # Tomcat Metric Setting
+  tomcat:
+    mbeanregistry:
+      enabled: true

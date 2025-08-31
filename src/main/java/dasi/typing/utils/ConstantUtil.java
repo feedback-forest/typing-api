@@ -18,10 +18,10 @@ public class ConstantUtil {
   public static final int TEMP_TOKEN_TTL = 3;
 
   // Login Redirect URL
-  public static final String LOGIN_REDIRECT_URL = "/typing/login/callback";
+  public static final String LOGIN_REDIRECT_URL = "/login/callback";
 
   // Consent
-  public static final int REQUIRED_CONSENT_COUNT = 3;
+  public static final int REQUIRED_CONSENT_COUNT = 2;
 
   // Reissue URI
   public static final String REISSUE_URI = "/api/v1/members/reissue";
