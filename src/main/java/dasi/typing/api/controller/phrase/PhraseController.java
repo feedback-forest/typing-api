@@ -22,5 +22,4 @@ public class PhraseController {
     List<PhraseResponse> responses = phraseService.getRandomPhrases();
     return ApiResponse.success("phrases", responses);
   }
-
 }

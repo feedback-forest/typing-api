@@ -56,7 +56,7 @@ spring:
     secret: ${jwt.secret-key}
 
 front:
-  server: localhost:8080
+  server: localhost:3000
 
 logging:
   level:

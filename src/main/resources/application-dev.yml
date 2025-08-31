@@ -3,17 +3,17 @@ spring:
     import:
       - application-secret.yml
     activate:
-      on-profile: local
+      on-profile: dev
   # Basic Config
   application:
     name: typing
 
   # MySQL Config
   datasource:
-    url: ${db.local.url}
-    username: ${db.local.username}
-    password: ${db.local.password}
-    driver-class-name: ${db.local.driver-class-name}
+    url: ${db.dev.url}
+    username: ${db.dev.username}
+    password: ${db.dev.password}
+    driver-class-name: ${db.dev.driver-class-name}
 
   # JPA Config
   jpa:
@@ -62,7 +62,7 @@ spring:
     property-naming-strategy: SNAKE_CASE
 
 front:
-  server: ${front.local-url}
+  server: ${front.dev-url}
 
 logging:
   level:
