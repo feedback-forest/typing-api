@@ -40,6 +40,10 @@ public class ConstantUtil {
   public static final String ACCESS_TOKEN_COOKIE = "access_token";
   public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
+  // Phrase Queue Redis
+  public static final String PHRASE_QUEUE_KEY_PREFIX = "phrase:queue:";
+  public static final long PHRASE_QUEUE_TTL_HOURS = 25L;
+
   // Phrase Count for Random Phrases
   public static final int PHRASE_COUNT = 20;
 
