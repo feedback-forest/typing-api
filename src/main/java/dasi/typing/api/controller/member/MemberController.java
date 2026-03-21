@@ -1,7 +1,5 @@
 package dasi.typing.api.controller.member;
 
-import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
-
 import dasi.typing.api.controller.member.request.MemberCreateRequest;
 import dasi.typing.api.controller.member.request.MemberNicknameRequest;
 import dasi.typing.api.controller.member.response.NicknameResponse;
@@ -9,9 +7,10 @@ import dasi.typing.api.service.member.MemberService;
 import dasi.typing.api.service.member.NicknameService;
 import dasi.typing.exception.ApiResponse;
 import dasi.typing.filter.GuestPrincipal;
+import dasi.typing.jwt.JwtToken;
+import dasi.typing.utils.CookieUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,25 +28,15 @@ public class MemberController {
   private final MemberService memberService;
   private final NicknameService nicknameService;
 
-  @GetMapping("/api/v1/members")
-  public ResponseEntity<ApiResponse<Boolean>> signIn(
-      @AuthenticationPrincipal GuestPrincipal guest) {
-
-    String accessToken = memberService.signIn(guest.id());
-    return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
-        .body(ApiResponse.success(true));
-  }
-
   @PostMapping("/api/v1/members")
-  public ResponseEntity<ApiResponse<Boolean>> signUp(
+  public ApiResponse<Boolean> signUp(
       @AuthenticationPrincipal GuestPrincipal guest,
-      @RequestBody MemberCreateRequest request) {
+      @RequestBody MemberCreateRequest request,
+      HttpServletResponse response) {
 
-    String accessToken = memberService.signUp(guest.id(), request.toServiceRequest());
-    return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
-        .body(ApiResponse.success(true));
+    JwtToken jwtToken = memberService.signUp(guest.id(), request.toServiceRequest());
+    CookieUtil.addTokenCookies(response, jwtToken);
+    return ApiResponse.success(true);
   }
 
   @PostMapping("/api/v1/members/nickname/validate")
@@ -64,15 +53,13 @@ public class MemberController {
 
   @PostMapping("/api/v1/members/reissue")
   @PreAuthorize("hasRole('USER')")
-  public ResponseEntity<ApiResponse<Boolean>> reissue() {
-
+  public ApiResponse<Boolean> reissue(HttpServletResponse response) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
     String kakaoId = (String) authentication.getPrincipal();
-    String accessToken = memberService.reissue(kakaoId);
 
-    return ResponseEntity.ok()
-        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
-        .body(ApiResponse.success(true));
+    CookieUtil.clearTokenCookies(response);
+    JwtToken jwtToken = memberService.reissue(kakaoId);
+    CookieUtil.addTokenCookies(response, jwtToken);
+    return ApiResponse.success(true);
   }
 }

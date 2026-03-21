@@ -1,11 +1,13 @@
 package dasi.typing.filter;
 
+import static dasi.typing.utils.ConstantUtil.ACCESS_TOKEN_COOKIE;
 import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
 import static dasi.typing.utils.ConstantUtil.REISSUE_URI;
 import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import dasi.typing.jwt.JwtTokenProvider;
+import dasi.typing.utils.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,8 +53,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   }
 
   public String resolveToken(HttpServletRequest request) {
-    String bearerToken = request.getHeader(TOKEN_HEADER);
+    String cookieToken = CookieUtil.resolveTokenFromCookie(request, ACCESS_TOKEN_COOKIE);
+    if (isNotEmpty(cookieToken)) {
+      return cookieToken;
+    }
 
+    String bearerToken = request.getHeader(TOKEN_HEADER);
     if (isNotEmpty(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
       return bearerToken.substring(BEARER_PREFIX.length());
     }

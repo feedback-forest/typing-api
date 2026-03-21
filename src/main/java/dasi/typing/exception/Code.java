@@ -37,7 +37,8 @@ public enum Code {
   EMPTY_JWT_TOKEN(5005, "토큰이 비어있거나 제공되지 않았습니다."),
 
   // Consent
-  INSUFFICIENT_CONSENT_EXCEPTION(6000, "3가지 동의가 모두 필요합니다. 동의 후 이용해주세요.");
+  INSUFFICIENT_CONSENT_EXCEPTION(6000, "3가지 동의가 모두 필요합니다. 동의 후 이용해주세요."),
+  CONSENT_RE_AGREEMENT_REQUIRED(6001, "약관이 변경되었습니다. 재동의가 필요합니다.");
 
   private final Integer code;
   private final String message;

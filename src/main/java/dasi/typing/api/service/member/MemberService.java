@@ -3,7 +3,6 @@ package dasi.typing.api.service.member;
 import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
-import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
 import static dasi.typing.utils.ConstantUtil.REQUIRED_CONSENT_COUNT;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
@@ -39,20 +38,14 @@ public class MemberService {
   private final JwtTokenProvider jwtTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
 
-  public String signIn(String tempToken) {
-    String kakaoId = getKakaoIdFromTempToken(tempToken);
-    validateRegisteredMember(kakaoId);
-    return jwtTokenProvider.generateToken(kakaoId, new Date()).accessToken();
-  }
-
   @Transactional
-  public String signUp(String tempToken, MemberCreateServiceRequest request) {
+  public JwtToken signUp(String tempToken, MemberCreateServiceRequest request) {
 
     String kakaoId = getKakaoIdFromTempToken(tempToken);
     String nickname = request.getNickname();
     Member member = new Member(kakaoId, nickname);
 
-    List<Consent> consents = consentRepository.findByTypeIn(request.getAgreements());
+    List<Consent> consents = consentRepository.findByTypeInAndActiveTrue(request.getAgreements());
 
     if (consents.size() != REQUIRED_CONSENT_COUNT) {
       throw new CustomException(INSUFFICIENT_CONSENT_EXCEPTION);
@@ -61,7 +54,9 @@ public class MemberService {
     member.addConsent(consents);
     memberRepository.save(member);
 
-    return jwtTokenProvider.generateToken(kakaoId, new Date()).accessToken();
+    redisTemplate.delete(tempToken);
+
+    return jwtTokenProvider.generateToken(kakaoId, new Date());
   }
 
   public void validateNickname(MemberNicknameServiceRequest request) {
@@ -73,7 +68,7 @@ public class MemberService {
   }
 
   @Transactional
-  public String reissue(String kakaoId) {
+  public JwtToken reissue(String kakaoId) {
 
     RefreshToken refreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
         () -> new CustomException(EXPIRED_REFRESH_TOKEN)
@@ -81,18 +76,7 @@ public class MemberService {
 
     jwtTokenProvider.validateRefreshToken(refreshToken.getToken());
 
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
-    RefreshToken newRefreshToken = refreshToken.updateValue(jwtToken.refreshToken());
-    refreshTokenRepository.save(newRefreshToken);
-
-    return jwtToken.accessToken();
-  }
-
-  private void validateRegisteredMember(String kakaoId) {
-    if (memberRepository.existsByKakaoId(kakaoId)) {
-      return;
-    }
-    throw new CustomException(KAKAO_ACCOUNT_NOT_REGISTERED);
+    return jwtTokenProvider.generateToken(kakaoId, new Date());
   }
 
   private String getKakaoIdFromTempToken(String tempToken) {

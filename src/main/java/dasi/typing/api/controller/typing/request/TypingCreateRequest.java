@@ -15,14 +15,14 @@ public class TypingCreateRequest {
 
   private Integer cpm;
 
-  private Integer acc;
+  private double acc;
 
   private Integer wpm;
 
   private Integer maxCpm;
 
   @Builder
-  private TypingCreateRequest(Long phraseId, Integer cpm, Integer acc, Integer wpm, Integer maxCpm) {
+  private TypingCreateRequest(Long phraseId, Integer cpm, double acc, Integer wpm, Integer maxCpm) {
     this.phraseId = phraseId;
     this.cpm = cpm;
     this.acc = acc;

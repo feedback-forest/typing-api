@@ -11,16 +11,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('USER, GUEST')")
+@RequestMapping("/api/v1/typings")
 public class TypingController {
 
   private final TypingService typingService;
 
-  @PostMapping("/api/v1/typings")
+  @PostMapping
   public ApiResponse<Map<String, TypingResponse>> saveTyping(
       @RequestBody TypingCreateRequest request) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

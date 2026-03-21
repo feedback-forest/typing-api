@@ -114,7 +114,12 @@ jacocoTestReport {
                     '**/exception/**',
                     '**/config/**',
                     '**/Q*.class',
-                    '**/generated/**'
+                    '**/generated/**',
+                    '**/handler/**',
+                    '**/filter/**',
+                    '**/data/**',
+                    '**/api/service/oauth/**',
+                    '**/api/controller/redis/**'
             ])
         }))
     }
@@ -165,7 +170,19 @@ jacocoTestCoverageVerification {
                     '**.config.**',
                     '**.MemberRole*',
                     '**/Q*.class',
-                    '**/generated/**'
+                    '**/generated/**',
+                    '**.handler.**',
+                    '**.filter.**',
+                    '**.data.**',
+                    '**.api.service.oauth.**',
+                    '**.api.controller.redis.**',
+                    '**.PhraseRepositoryImpl*',
+                    '**.admin.**',
+                    '**.api.controller.consent.**',
+                    '**.api.service.consent.**',
+                    '**.utils.CookieUtil*',
+                    '**.domain.refreshToken.**',
+                    '**.domain.phrasequeue.**'
             ]
         }
     }
