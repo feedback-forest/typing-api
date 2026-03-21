@@ -1,5 +1,7 @@
 package dasi.typing.api.controller.phrase.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dasi.typing.domain.phrase.Phrase;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +17,14 @@ public class PhraseResponse {
   private String type;
 
   @Builder
-  private PhraseResponse(Long id, String sentence, String title, String author, String lang,
-      String type) {
+  @JsonCreator
+  public PhraseResponse(
+      @JsonProperty("id") Long id,
+      @JsonProperty("sentence") String sentence,
+      @JsonProperty("title") String title,
+      @JsonProperty("author") String author,
+      @JsonProperty("lang") String lang,
+      @JsonProperty("type") String type) {
     this.id = id;
     this.sentence = sentence;
     this.title = title;
