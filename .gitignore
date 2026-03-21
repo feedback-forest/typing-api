@@ -37,7 +37,6 @@ out/
 .vscode/
 
 ### Custom ###
-.env
 .gitmessage.txt
 .gitattributes
 application-secret.yml
