@@ -20,6 +20,9 @@ public class ConstantUtil {
   // Login Redirect URL
   public static final String LOGIN_REDIRECT_URL = "/login/callback";
 
+  // Signup Redirect URL
+  public static final String SIGNUP_REDIRECT_URL = "/signup";
+
   // Consent
   public static final int REQUIRED_CONSENT_COUNT = 2;
 
@@ -32,6 +35,10 @@ public class ConstantUtil {
   // JWT Token Expiration and Refresh Times
   public static final long TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 3L;
   public static final long TOKEN_REFRESH_TIME = 1000 * 60 * 60 * 24 * 7L;
+
+  // Cookie Names
+  public static final String ACCESS_TOKEN_COOKIE = "access_token";
+  public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
   // Phrase Count for Random Phrases
   public static final int PHRASE_COUNT = 20;
