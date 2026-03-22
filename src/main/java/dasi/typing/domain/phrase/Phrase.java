@@ -33,13 +33,16 @@ public class Phrase extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private LangType type;
 
+  private Integer randId;
+
   @Builder
-  private Phrase(String sentence, String title, String author, Lang lang, LangType type) {
+  private Phrase(String sentence, String title, String author, Lang lang, LangType type, Integer randId) {
     this.sentence = sentence;
     this.title = title;
     this.author = author;
     this.lang = lang;
     this.type = type;
+    this.randId = randId;
   }
 
 }

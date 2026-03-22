@@ -110,7 +110,10 @@
 
 | `5005`
 | 토큰이 비어있거나 제공되지 않았습니다.
-|===
 
-[[overview-error-response]]
-=== HTTP Error Response
+| Consent
+|
+
+| `6000`
+| 3가지 동의가 모두 필요합니다. 동의 후 이용해주세요.
+|===

@@ -1,8 +1,10 @@
 package dasi.typing.api.service.typing;
 
+import static dasi.typing.exception.Code.NOT_EXIST_PHRASE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import dasi.typing.api.controller.typing.request.TypingCreateRequest;
 import dasi.typing.api.service.phrase.LuckyMessageService;
@@ -19,7 +21,7 @@ import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
-import dasi.typing.jwt.GuestPrincipal;
+import dasi.typing.filter.GuestPrincipal;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -33,10 +35,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class TypingServiceTest {
 
   @Autowired
@@ -63,17 +63,17 @@ class TypingServiceTest {
 
   @Test
   @DisplayName("특정 문장에 대한 타자 정보를 생성할 있다.")
-  void createTyping() {
+  void createTypingTest() {
     // given
     Phrase phrase = createPhrase(
-        "안녕하세요.",
-        "인사",
-        "김용범",
+        "test sentence",
+        "test title",
+        "test author",
         Lang.KO,
         LangType.QUOTE
     );
 
-    Member member = createMember("3942518969", "용갈이");
+    Member member = createMember("000000000", "test nickname");
     Member savedMember = memberRepository.save(member);
     Phrase savedPhrase = phraseRepository.save(phrase);
     TypingCreateRequest request = createRequest(savedPhrase);
@@ -88,45 +88,60 @@ class TypingServiceTest {
         .isNotNull()
         .extracting("id", "cpm", "acc", "wpm")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getId(), 100, 100, 100)
+            tuple(savedTyping.getId(), 100, 100.0, 100)
         );
     assertThat(List.of(savedTyping.getMember()))
         .isNotNull()
         .extracting("id", "kakaoId", "nickname")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getMember().getId(), "3942518969", "용갈이")
+            tuple(savedTyping.getMember().getId(), "000000000", "test nickname")
         );
     assertThat(List.of(savedTyping.getPhrase()))
         .isNotNull()
         .extracting("id", "sentence", "title", "author", "lang", "type")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getPhrase().getId(), "안녕하세요.", "인사", "김용범", Lang.KO, LangType.QUOTE)
+            tuple(
+                savedTyping.getPhrase().getId(), "test sentence", "test title", "test author",
+                Lang.KO, LangType.QUOTE)
         );
   }
 
   @Test
-  @DisplayName("존재하지 않는 문장에 대해서 예외가 발생한다.")
-  void notExistPhrase() throws CustomException {
-    // given
-    Long phraseId = 999L;
-
-    // when, then
-    assertThatThrownBy(() -> {
-      phraseRepository.findById(phraseId).orElseThrow(
-          () -> new CustomException(Code.NOT_EXIST_PHRASE));
-    }).isInstanceOf(CustomException.class)
-        .hasMessage(Code.NOT_EXIST_PHRASE.getMessage());
-  }
-
-  @Test
-  @DisplayName("비회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
-  void createAnonymousTypingResponse() {
+  @DisplayName("존재하지 않는 문장에 대해서 NOT_EXIST_PHRASE 예외가 발생한다.")
+  void notExistPhraseTest() throws CustomException {
     // given
     String guestId = UUID.randomUUID().toString();
     AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
         "guestKey",
         new GuestPrincipal(guestId),
-        AuthorityUtils.createAuthorityList("GUEST")
+        AuthorityUtils.createAuthorityList("ROLE_GUEST")
+    );
+    SecurityContextHolder.getContext().setAuthentication(anonymousToken);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    // when
+    TypingCreateServiceRequest serviceRequest = TypingCreateServiceRequest.builder()
+        .phraseId(999L)
+        .cpm(100)
+        .acc(100)
+        .wpm(100)
+        .maxCpm(120).build();
+
+    // then
+    assertThatThrownBy(() -> typingService.saveTyping(authentication, serviceRequest))
+        .isInstanceOf(CustomException.class)
+        .hasMessage(NOT_EXIST_PHRASE.getMessage());
+  }
+
+  @Test
+  @DisplayName("비회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
+  void createAnonymousTypingResponseTest() {
+    // given
+    String guestId = UUID.randomUUID().toString();
+    AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
+        "guestKey",
+        new GuestPrincipal(guestId),
+        AuthorityUtils.createAuthorityList("ROLE_GUEST")
     );
     SecurityContextHolder.getContext().setAuthentication(anonymousToken);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -137,11 +152,11 @@ class TypingServiceTest {
         Lang.KO,
         LangType.QUOTE
     );
-    Phrase savedPhrase = phraseRepository.save(phrase);
 
     // when
-    TypingCreateRequest request = createRequest(savedPhrase);
-    TypingResponse response = typingService.saveTyping(authentication, request.toServiceRequest());
+    Phrase savedPhrase = phraseRepository.save(phrase);
+    TypingCreateServiceRequest serviceRequest = createRequest(savedPhrase).toServiceRequest();
+    TypingResponse response = typingService.saveTyping(authentication, serviceRequest);
 
     // then
     assertThat(response).isNotNull();
@@ -152,21 +167,50 @@ class TypingServiceTest {
   }
 
   @Test
-  @DisplayName("회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
-  void createUserTypingResponse() {
+  @DisplayName("회원이지만 kakaoId 정보가 없는 경우, NOT_EXIST_MEMBER 예외가 발생한다.")
+  void createTypingWithMissingKakaoIdTest() {
     // given
-    String kakaoId = "1234567890";
-    Member member = createMember(kakaoId, "dt10002");
-    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
+    UsernamePasswordAuthenticationToken authenticationToken =
+        new UsernamePasswordAuthenticationToken("000000000", null, authorities);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Phrase phrase = createPhrase(
+        "test sentence",
+        "test title",
+        "test author",
+        Lang.KO,
+        LangType.QUOTE
+    );
+
+    // when
+    Phrase savedPhrase = phraseRepository.save(phrase);
+    TypingCreateServiceRequest serviceRequest = createRequest(savedPhrase).toServiceRequest();
+    Code expectedErrorCode = assertThrows(CustomException.class, () -> {
+      typingService.saveTyping(authentication, serviceRequest);
+    }).getErrorCode();
+
+    // then
+    assertThat(expectedErrorCode).isEqualTo(Code.NOT_EXIST_MEMBER);
+  }
+
+  @Test
+  @DisplayName("회원일 때, 타자 정보 생성 후에 행운의 메시지와 순위를 반환할 수 있다.")
+  void createUserTypingResponseTest() {
+    // given
+    String kakaoId = "000000000";
+    Member member = createMember(kakaoId, "test nickname");
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
 
     UsernamePasswordAuthenticationToken authenticationToken =
         new UsernamePasswordAuthenticationToken(kakaoId, null, authorities);
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Phrase phrase = createPhrase(
-        "안녕하세요.",
-        "인사",
-        "김용범",
+        "test sentence",
+        "test title",
+        "test author",
         Lang.KO,
         LangType.QUOTE
     );
@@ -197,9 +241,7 @@ class TypingServiceTest {
   }
 
   private static Member createMember(String kakaoId, String nickname) {
-    return Member.builder()
-        .kakaoId(kakaoId)
-        .nickname(nickname).build();
+    return new Member(kakaoId, nickname);
   }
 
   private static TypingCreateRequest createRequest(Phrase savedPhrase) {
@@ -210,5 +252,4 @@ class TypingServiceTest {
         .wpm(100)
         .maxCpm(120).build();
   }
-
 }

@@ -1,5 +1,7 @@
 package dasi.typing.domain.memberConsent;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import dasi.typing.domain.BaseEntity;
 import dasi.typing.domain.consent.Consent;
 import jakarta.persistence.Entity;
@@ -9,11 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = PROTECTED)
 public class MemberConsent extends BaseEntity {
 
   @Id
@@ -26,13 +29,11 @@ public class MemberConsent extends BaseEntity {
 
   private final boolean agreed = true;
 
-  @Builder
-  private MemberConsent(Consent consent) {
+  public MemberConsent(Consent consent) {
     this.consent = consent;
   }
 
   public static MemberConsent of(Consent consent) {
-    return MemberConsent.builder()
-        .consent(consent).build();
+    return new MemberConsent(consent);
   }
 }

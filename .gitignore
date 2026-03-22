@@ -37,9 +37,9 @@ out/
 .vscode/
 
 ### Custom ###
-.env
 .gitmessage.txt
 .gitattributes
+application-secret.yml
 /src/main/generated/
 /src/main/generated_tests/
 /src/main/resources/static/docs/

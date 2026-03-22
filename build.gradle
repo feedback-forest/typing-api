@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
@@ -72,6 +73,14 @@ dependencies {
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
+    // Spring Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+}
+
+jacoco {
+    toolVersion = "0.8.11"
 }
 
 ext {
@@ -80,7 +89,110 @@ ext {
 
 test {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
     outputs.dir snippetsDir
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+
+        xml.destination file(project.layout.buildDirectory.dir("jacoco/index.xml")) as File
+        csv.destination file(project.layout.buildDirectory.dir("jacoco/index.csv")) as File
+        html.destination file(project.layout.buildDirectory.dir("jacoco/index.html")) as File
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**.request.**',
+                    '**.response.**',
+                    '**/*Application*',
+                    '**/exception/**',
+                    '**/config/**',
+                    '**/Q*.class',
+                    '**/generated/**',
+                    '**/handler/**',
+                    '**/filter/**',
+                    '**/data/**',
+                    '**/api/service/oauth/**',
+                    '**/api/controller/redis/**'
+            ])
+        }))
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**.request.**',
+                    '**.response.**',
+                    '**/*Application*',
+                    '**.exception/**',
+                    '**.config.**',
+                    '**.MemberRole*',
+                    '**/Q*.class',
+                    '**/generated/**'
+            ])
+        }))
+    }
+
+    violationRules {
+        rule {
+            enabled = true;
+            element = 'CLASS'
+
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+
+            excludes = [
+                    '**.request.**',
+                    '**.response.**',
+                    '**.*Application*',
+                    '**.exception.**',
+                    '**.config.**',
+                    '**.MemberRole*',
+                    '**/Q*.class',
+                    '**/generated/**',
+                    '**.handler.**',
+                    '**.filter.**',
+                    '**.data.**',
+                    '**.api.service.oauth.**',
+                    '**.api.controller.redis.**',
+                    '**.PhraseRepositoryImpl*',
+                    '**.admin.**',
+                    '**.api.controller.consent.**',
+                    '**.api.service.consent.**',
+                    '**.utils.CookieUtil*',
+                    '**.domain.refreshToken.**',
+                    '**.domain.phrasequeue.**',
+                    '**.api.service.phrase.PhraseService*',
+                    '**.api.service.ranking.**',
+                    '**.api.service.typing.TypingService*',
+                    '**.api.service.mypage.**',
+                    '**.api.controller.mypage.**',
+                    '**.api.service.member.MemberService*',
+                    '**.api.controller.member.MemberController*'
+            ]
+        }
+    }
 }
 
 tasks.named('asciidoctor') {

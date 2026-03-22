@@ -18,7 +18,7 @@ import dasi.typing.api.service.phrase.LuckyMessageService;
 import dasi.typing.api.service.phrase.PhraseService;
 import dasi.typing.api.service.ranking.RankingService;
 import dasi.typing.api.service.typing.TypingService;
-import dasi.typing.jwt.GuestPrincipal;
+import dasi.typing.filter.GuestPrincipal;
 import dasi.typing.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

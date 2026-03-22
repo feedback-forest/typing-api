@@ -5,27 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dasi.typing.api.controller.ranking.response.RankingResponse;
+import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.phrase.Phrase;
 import dasi.typing.domain.phrase.PhraseRepository;
+import dasi.typing.domain.typing.Typing;
 import dasi.typing.domain.typing.TypingRepository;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest
-@ActiveProfiles("test")
-@Sql(scripts = "/ranking.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RankingServiceTest {
 
   @Autowired
@@ -47,14 +41,26 @@ class RankingServiceTest {
     memberRepository.deleteAllInBatch();
   }
 
-  @Disabled
+  private final int USER_COUNT = 100;
+
   @Test
-  @DisplayName("충분한 데이터가 존재할 때, 점수를 기준으로 내림차순하여 상위 50명의 데이터를 반환할 수 있다.")
-  void getRealTimeRanking() {
+  @DisplayName("50명 이상의 유저 데이터가 있을 때, 점수를 기준으로 내림차순하여 상위 50명의 데이터를 반환할 수 있다.")
+  void getRealTimeRankingTest() {
     // given
-    List<RankingResponse> responses = rankingService.getRealTimeRanking();
+    Phrase phrase = createPhrase();
+
+    List<Typing> typings = IntStream.rangeClosed(1, USER_COUNT)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i, 100, member, phrase);
+        })
+        .toList();
+
+    typingRepository.saveAll(typings);
 
     // when
+    List<RankingResponse> responses = rankingService.getRealTimeRanking();
     RankingResponse first = responses.getFirst();
     RankingResponse last = responses.getLast();
 
@@ -72,18 +78,24 @@ class RankingServiceTest {
     }
   }
 
-  @Disabled
   @Test
-  @DisplayName("현재 날짜에 해당하는 연월에 대해서 최대 50등까지 랭킹 조회를 할 수 있다.")
-  void getMonthlyRanking() {
+  @DisplayName("50명 이상의 유저 데이터가 있을 때, 현재 날짜에 해당하는 연월에 대해서 최대 50등까지 랭킹 조회를 할 수 있다.")
+  void getMonthlyRankingTest() {
     // given
-    LocalDate now = LocalDate.now();
-    LocalDateTime startDate = getMonthStartDate(now);
-    LocalDateTime endDate = getMonthEndDate(now);
+    Phrase phrase = createPhrase();
+
+    List<Typing> typings = IntStream.rangeClosed(1, USER_COUNT)
+        .mapToObj(i -> {
+          String str = String.valueOf(i);
+          Member member = createMember(str, str);
+          return createTyping(i, 100, member, phrase);
+        })
+        .toList();
+
+    typingRepository.saveAll(typings);
 
     // when
-    List<RankingResponse> responses = typingRepository
-        .findTop50WithMonthlySequentialRank(startDate, endDate);
+    List<RankingResponse> responses = rankingService.getMonthlyRanking();
 
     // then
     assertTrue(responses.size() <= 50);
@@ -96,13 +108,23 @@ class RankingServiceTest {
     }
   }
 
-  private static LocalDateTime getMonthStartDate(LocalDate now) {
-    return now.withDayOfMonth(1)
-        .atTime(0, 0, 0, 0);
+  private Typing createTyping(int cpm, int acc, Member member, Phrase phrase) {
+    return Typing.builder()
+        .cpm(cpm)
+        .acc((double) acc)
+        .wpm(0)
+        .maxCpm(0)
+        .member(member)
+        .phrase(phrase).build();
   }
 
-  private static LocalDateTime getMonthEndDate(LocalDate now) {
-    return now.with(TemporalAdjusters.lastDayOfMonth())
-        .atTime(23, 59, 59, 999999999);
+  private Member createMember(String kakaoId, String nickname) {
+    return memberRepository.save(new Member(kakaoId, nickname));
+  }
+
+  private Phrase createPhrase() {
+    return phraseRepository.save(Phrase.builder()
+        .sentence("test phrase").build()
+    );
   }
 }

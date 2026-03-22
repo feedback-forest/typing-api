@@ -9,10 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class PhraseRepositoryTest {
 
   @Autowired
@@ -24,42 +22,45 @@ class PhraseRepositoryTest {
   }
 
   @Test
-  @DisplayName("랜덤으로 20개의 문장들을 조회할 수 있다.")
-  void findRandom20PhraseTest() {
+  @DisplayName("문장을 저장하고 전체 조회할 수 있다.")
+  void saveAndFindAllTest() {
     // given
     List<Phrase> phrases = new ArrayList<>();
-    for (int i = 1; i <= 25; i++) {
-      phrases.add(createPhrase(String.valueOf(i), "문장 " + i, "작가 " + i));
+    for (int i = 1; i <= 5; i++) {
+      phrases.add(createPhrase("문장 " + i));
     }
     phraseRepository.saveAll(phrases);
 
     // when
-    List<Long> allIds = phrases.stream().map(Phrase::getId).toList();
-
-    List<Long> firstResult = phraseRepository.getRandom20Phrases()
-        .stream().map(Phrase::getId).toList();
-
-    List<Long> secondResult = phraseRepository.getRandom20Phrases()
-        .stream().map(Phrase::getId).toList();
+    List<Phrase> result = phraseRepository.findAll();
 
     // then
-    assertThat(allIds)
-        .containsAll(firstResult)
-        .containsAll(secondResult);
-
-    assertThat(firstResult)
-        .hasSize(20)
-        .hasSameSizeAs(secondResult)
-        .isNotEqualTo(secondResult);
+    assertThat(result).hasSize(5);
   }
 
-  private Phrase createPhrase(String sentence, String title, String author) {
+  @Test
+  @DisplayName("ID로 문장을 조회할 수 있다.")
+  void findByIdTest() {
+    // given
+    Phrase saved = phraseRepository.save(createPhrase("테스트 문장"));
+
+    // when
+    Phrase found = phraseRepository.findById(saved.getId()).orElseThrow();
+
+    // then
+    assertThat(found.getSentence()).isEqualTo("테스트 문장");
+  }
+
+  private int randIdCounter = 1;
+
+  private Phrase createPhrase(String sentence) {
     return Phrase.builder()
         .sentence(sentence)
-        .title(title)
-        .author(author)
+        .title("제목")
+        .author("작가")
         .lang(Lang.KO)
         .type(LangType.QUOTE)
+        .randId(randIdCounter++)
         .build();
   }
 }

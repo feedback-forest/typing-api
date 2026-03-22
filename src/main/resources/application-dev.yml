@@ -1,0 +1,74 @@
+spring:
+  config:
+    import:
+      - application-secret.yml
+    activate:
+      on-profile: dev
+  # Basic Config
+  application:
+    name: typing
+
+  # MySQL Config
+  datasource:
+    url: ${db.dev.url}
+    username: ${db.dev.username}
+    password: ${db.dev.password}
+    driver-class-name: ${db.dev.driver-class-name}
+
+  # JPA Config
+  jpa:
+    show-sql: true
+    database: mysql
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+
+  jwt:
+    secret: ${jwt.secret-key}
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Spring Security OAuth2, Client
+  security:
+    oauth2:
+      client:
+        provider:
+          kakao:
+            authorization-uri: ${oauth2.authorization-url}
+            token-uri: ${oauth2.token-url}
+            user-info-uri: ${oauth2.user-info-uri}
+            jwk-set-uri: ${oauth2.oidc-jwk-set-uri}
+            user-name-attribute: sub
+        registration:
+          kakao:
+            authorization-grant-type: ${oauth2.grant-type}
+            redirect-uri: ${oauth2.login-redirect-uri}
+            client-name: Kakao
+            client-authentication-method: client_secret_post
+            client-id: ${oauth2.rest-api-key}
+            client-secret: ${oauth2.client-secret-key}
+            scope:
+              - openid              # OIDC
+              - name                # 이름
+              - profile_nickname    # 닉네임
+              - account_email       # 카카오계정(이메일)
+
+cookie:
+  secure: false
+
+front:
+  server: ${front.dev-url}
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE

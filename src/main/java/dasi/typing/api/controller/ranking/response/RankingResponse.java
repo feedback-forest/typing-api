@@ -29,7 +29,18 @@ public class RankingResponse {
     this.memberId = memberId;
     this.nickname = nickname;
     this.score = score;
-    this.createdDate = createdDate.toLocalDateTime();
+    this.createdDate = createdDate != null ? createdDate.toLocalDateTime() : null;
     this.ranking = ranking;
+  }
+
+  public static RankingResponse of(Long memberId, String nickname, Integer score,
+      LocalDateTime createdDate, Long ranking) {
+    RankingResponse response = new RankingResponse();
+    response.memberId = memberId;
+    response.nickname = nickname;
+    response.score = score;
+    response.createdDate = createdDate;
+    response.ranking = ranking;
+    return response;
   }
 }
