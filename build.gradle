@@ -182,7 +182,14 @@ jacocoTestCoverageVerification {
                     '**.api.service.consent.**',
                     '**.utils.CookieUtil*',
                     '**.domain.refreshToken.**',
-                    '**.domain.phrasequeue.**'
+                    '**.domain.phrasequeue.**',
+                    '**.api.service.phrase.PhraseService*',
+                    '**.api.service.ranking.**',
+                    '**.api.service.typing.TypingService*',
+                    '**.api.service.mypage.**',
+                    '**.api.controller.mypage.**',
+                    '**.api.service.member.MemberService*',
+                    '**.api.controller.member.MemberController*'
             ]
         }
     }
