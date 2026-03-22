@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('USER', 'GUEST')")
+@PreAuthorize("hasAnyRole('USER', 'GUEST', 'ADMIN')")
 public class PhraseController {
 
   private final PhraseService phraseService;

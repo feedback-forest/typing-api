@@ -52,7 +52,7 @@ public class MemberController {
   }
 
   @PostMapping("/api/v1/members/reissue")
-  @PreAuthorize("hasRole('USER')")
+  @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
   public ApiResponse<Boolean> reissue(HttpServletResponse response) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String kakaoId = (String) authentication.getPrincipal();
@@ -60,6 +60,17 @@ public class MemberController {
     CookieUtil.clearTokenCookies(response);
     JwtToken jwtToken = memberService.reissue(kakaoId);
     CookieUtil.addTokenCookies(response, jwtToken);
+    return ApiResponse.success(true);
+  }
+
+  @PostMapping("/api/v1/members/logout")
+  @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+  public ApiResponse<Boolean> logout(HttpServletResponse response) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String kakaoId = (String) authentication.getPrincipal();
+
+    memberService.logout(kakaoId);
+    CookieUtil.clearTokenCookies(response);
     return ApiResponse.success(true);
   }
 }
