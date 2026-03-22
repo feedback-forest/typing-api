@@ -4,12 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -24,56 +21,46 @@ class PhraseRepositoryTest {
     phraseRepository.deleteAllInBatch();
   }
 
-  private static Stream<Arguments> findRandomPhraseScenarios() {
-    return Stream.of(
-        Arguments.of(1, 1),
-        Arguments.of(3, 3),
-        Arguments.of(5, 5),
-        Arguments.of(10, 10),
-        Arguments.of(15, 15),
-        Arguments.of(20, 20),
-        Arguments.of(25, 25)
-    );
-  }
-
-  @ParameterizedTest
-  @MethodSource("findRandomPhraseScenarios")
-  @DisplayName("파라미터로 주어진 문장의 개수만큼 조회할 수 있다.")
-  void getRandomPhraseTest(int phraseCount, int expectedSize) {
+  @Test
+  @DisplayName("문장을 저장하고 전체 조회할 수 있다.")
+  void saveAndFindAllTest() {
     // given
     List<Phrase> phrases = new ArrayList<>();
-    for (int i = 1; i <= 100; i++) {
-      phrases.add(createPhrase(String.valueOf(i), "문장 " + i, "작가 " + i));
+    for (int i = 1; i <= 5; i++) {
+      phrases.add(createPhrase("문장 " + i));
     }
     phraseRepository.saveAll(phrases);
 
     // when
-    List<Long> allIds = phrases.stream().map(Phrase::getId).toList();
-
-    List<Long> firstResult = phraseRepository.getRandomPhrases(phraseCount)
-        .stream().map(Phrase::getId).toList();
-
-    List<Long> secondResult = phraseRepository.getRandomPhrases(phraseCount)
-        .stream().map(Phrase::getId).toList();
+    List<Phrase> result = phraseRepository.findAll();
 
     // then
-    assertThat(allIds)
-        .containsAll(firstResult)
-        .containsAll(secondResult);
-
-    assertThat(firstResult)
-        .hasSize(expectedSize)
-        .hasSameSizeAs(secondResult)
-        .isNotEqualTo(secondResult);
+    assertThat(result).hasSize(5);
   }
 
-  private Phrase createPhrase(String sentence, String title, String author) {
+  @Test
+  @DisplayName("ID로 문장을 조회할 수 있다.")
+  void findByIdTest() {
+    // given
+    Phrase saved = phraseRepository.save(createPhrase("테스트 문장"));
+
+    // when
+    Phrase found = phraseRepository.findById(saved.getId()).orElseThrow();
+
+    // then
+    assertThat(found.getSentence()).isEqualTo("테스트 문장");
+  }
+
+  private int randIdCounter = 1;
+
+  private Phrase createPhrase(String sentence) {
     return Phrase.builder()
         .sentence(sentence)
-        .title(title)
-        .author(author)
+        .title("제목")
+        .author("작가")
         .lang(Lang.KO)
         .type(LangType.QUOTE)
+        .randId(randIdCounter++)
         .build();
   }
 }

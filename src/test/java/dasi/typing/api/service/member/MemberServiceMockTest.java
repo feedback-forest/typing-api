@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import dasi.typing.domain.member.Member;
+import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.Code;
@@ -14,6 +17,7 @@ import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
 import java.util.Date;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +34,23 @@ class MemberServiceMockTest {
   private MemberService memberService;
 
   @Autowired
+  private MemberRepository memberRepository;
+
+  @Autowired
   private RefreshTokenRepository refreshTokenRepository;
+
+  @AfterEach
+  void tearDown() {
+    memberRepository.deleteAllInBatch();
+  }
 
   @Test
   @DisplayName("유효한 Refresh 토큰을 검증하면 true를 반환한다")
   void validateRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    memberRepository.save(new Member(kakaoId, "mockTestUser"));
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     RefreshToken refreshToken = new RefreshToken(kakaoId, jwtToken.refreshToken());
     refreshTokenRepository.save(refreshToken);
 

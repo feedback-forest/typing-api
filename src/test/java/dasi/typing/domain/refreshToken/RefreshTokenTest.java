@@ -2,6 +2,7 @@ package dasi.typing.domain.refreshToken;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dasi.typing.domain.member.Role;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtToken;
@@ -28,7 +29,7 @@ class RefreshTokenTest {
   void redisRefreshTokenTTLExpirationTest() throws Exception {
     // given
     String kakaoId = "1234567890";
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     String refreshToken = jwtToken.refreshToken();
 
     // when
