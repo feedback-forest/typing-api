@@ -8,12 +8,14 @@ import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
 import static dasi.typing.exception.Code.INVALID_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
 import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
+import dasi.typing.domain.member.Role;
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
 import dasi.typing.api.service.member.request.MemberNicknameServiceRequest;
 import dasi.typing.api.service.member.validator.NicknameValidator;
@@ -87,57 +89,26 @@ class MemberServiceTest {
   }
 
   @Test
-  @DisplayName("유효하지 임시 토큰을 사용하면 INVALID_TEMP_TOKEN 예외가 발생한다.")
-  void signInWithInvalidTempTokenTest() {
+  @DisplayName("유효하지 않은 임시 토큰을 사용하면 INVALID_TEMP_TOKEN 예외가 발생한다.")
+  void signUpWithInvalidTempTokenTest() {
     // given
     String invalidTempToken = "invalid_token";
     Code expectedCode = INVALID_TEMP_TOKEN;
 
+    MemberCreateServiceRequest request = MemberCreateServiceRequest.builder()
+        .nickname("testNickname")
+        .agreements(List.of(TERMS_OF_SERVICE, PRIVACY_POLICY, AGE_LIMIT_POLICY))
+        .build();
+
     // when
     Code result = assertThrows(CustomException.class, () -> {
-      memberService.signIn(invalidTempToken);
+      memberService.signUp(invalidTempToken, request);
     }).getErrorCode();
 
     // then
     assertThat(result)
         .extracting("code", "message")
         .containsExactly(expectedCode.getCode(), expectedCode.getMessage());
-  }
-
-  @Test
-  @DisplayName("회원가입을 하지 않은 유저는 로그인 시 KAKAO_ACCOUNT_NOT_REGISTERED 예외가 발생한다.")
-  void signInWithoutSignUpTest() {
-    // given
-    String tempToken = UUID.randomUUID().toString();
-    saveKakaoIdInRedis(tempToken, "1234567890");
-    Code expectedCode = KAKAO_ACCOUNT_NOT_REGISTERED;
-
-    // when
-    Code result = assertThrows(CustomException.class, () -> {
-      memberService.signIn(tempToken);
-    })
-        .getErrorCode();
-
-    // then
-    assertThat(result)
-        .extracting("code", "message")
-        .containsExactly(expectedCode.getCode(), expectedCode.getMessage());
-  }
-
-  @Test
-  @DisplayName("로그인 시 kakaoID를 가진 회원이 존재하면 AccessToken을 반환한다.")
-  void signInWithRegisteredMemberTest() {
-    // given
-    String tempToken = UUID.randomUUID().toString();
-    String kakaoId = "1234567890";
-    memberRepository.save(new Member(kakaoId, "testNickname"));
-
-    // when
-    saveKakaoIdInRedis(tempToken, kakaoId);
-    String accessToken = memberService.signIn(tempToken);
-
-    // then
-    assertThat(accessToken).isNotNull();
   }
 
   @Test
@@ -150,7 +121,7 @@ class MemberServiceTest {
 
     MemberCreateServiceRequest request = MemberCreateServiceRequest.builder()
         .nickname("testNickname")
-        .agreements(List.of(TERMS_OF_SERVICE, PRIVACY_POLICY))
+        .agreements(List.of(TERMS_OF_SERVICE))
         .build();
 
     // when & then
@@ -184,7 +155,7 @@ class MemberServiceTest {
   }
 
   @Test
-  @DisplayName("회원 가입 시 모든 약관에 동의하면 회원이 생성되고, AccessToken을 반환한다.")
+  @DisplayName("회원 가입 시 모든 약관에 동의하면 회원이 생성되고, JwtToken을 반환한다.")
   void signUpWithAllAgreementsTest() {
     // given
     String tempToken = UUID.randomUUID().toString();
@@ -197,10 +168,33 @@ class MemberServiceTest {
         .build();
 
     // when
-    String accessToken = memberService.signUp(tempToken, request);
+    JwtToken jwtToken = memberService.signUp(tempToken, request);
 
     // then
-    assertThat(accessToken).isNotNull();
+    assertThat(jwtToken).isNotNull();
+    assertThat(jwtToken.accessToken()).isNotNull();
+    assertThat(jwtToken.refreshToken()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("회원가입 성공 후 임시 토큰은 Redis에서 삭제된다.")
+  void signUpDeletesTempTokenTest() {
+    // given
+    String tempToken = UUID.randomUUID().toString();
+    String kakaoId = "1234567890";
+    saveKakaoIdInRedis(tempToken, kakaoId);
+
+    MemberCreateServiceRequest request = MemberCreateServiceRequest.builder()
+        .nickname("testNickname")
+        .agreements(List.of(TERMS_OF_SERVICE, PRIVACY_POLICY, AGE_LIMIT_POLICY))
+        .build();
+
+    // when
+    memberService.signUp(tempToken, request);
+
+    // then
+    String value = redisTemplate.opsForValue().get(resolveTempTokenKey(tempToken));
+    assertThat(value).isNull();
   }
 
   @Test
@@ -246,7 +240,7 @@ class MemberServiceTest {
         try {
           memberService.signUp(tempToken, request);
           successCount.incrementAndGet();
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException | CustomException e) {
           failedCount.incrementAndGet();
         } finally {
           latch.countDown();
@@ -298,7 +292,8 @@ class MemberServiceTest {
   void validRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    memberRepository.save(new Member(kakaoId, "reissueUser1"));
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     RefreshToken refreshToken = new RefreshToken(kakaoId, jwtToken.refreshToken());
     refreshTokenRepository.save(refreshToken);
 
@@ -308,30 +303,36 @@ class MemberServiceTest {
   }
 
   @Test
-  @DisplayName("AccessToken이 만료되고, RefreshToken이 유효한하다면 토큰을 재발급한다.")
+  @DisplayName("AccessToken이 만료되고, RefreshToken이 유효하다면 토큰을 재발급한다.")
   void accessTokenReissueByRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    String refreshToken = jwtTokenProvider.generateToken(kakaoId, new Date()).refreshToken();
+    memberRepository.save(new Member(kakaoId, "reissueUser2"));
+    String oldRefreshToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date()).refreshToken();
 
     // when
-    String accessToken = memberService.reissue(kakaoId);
-    RefreshToken newRefreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
+    JwtToken newJwtToken = memberService.reissue(kakaoId);
+    RefreshToken storedRefreshToken = refreshTokenRepository.findByKakaoId(kakaoId).orElseThrow(
         () -> new CustomException(INVALID_REFRESH_TOKEN)
     );
 
     // then
-    assertThat(accessToken).isNotNull();
-    assertThat(newRefreshToken.getToken()).isNotEqualTo(refreshToken);
+    assertThat(newJwtToken).isNotNull();
+    assertThat(newJwtToken.accessToken()).isNotNull();
+    assertThat(storedRefreshToken.getToken()).isNotEqualTo(oldRefreshToken);
   }
 
   private void saveKakaoIdInRedis(String tempToken, String kakaoId) {
     redisTemplate.opsForValue().set(
-        tempToken,
+        resolveTempTokenKey(tempToken),
         kakaoId,
         10,
         TimeUnit.SECONDS
     );
+  }
+
+  private String resolveTempTokenKey(String tempToken) {
+    return REDIS_KEY_PREFIX + tempToken;
   }
 
   private void consentSetup() {

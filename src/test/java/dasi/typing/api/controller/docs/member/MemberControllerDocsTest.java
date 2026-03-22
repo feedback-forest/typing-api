@@ -8,16 +8,12 @@ import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
-import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
-import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
-import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
@@ -25,7 +21,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,6 +34,7 @@ import dasi.typing.domain.consent.ConsentType;
 import dasi.typing.exception.ApiResponse;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.JwtToken;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -52,94 +48,11 @@ class MemberControllerDocsTest extends RestDocsSupport {
   private final String KAKAO_ID = "1234567890";
   private final String NICKNAME = "dragon";
   private final String TEMP_TOKEN = "457e32c9-9780-41f7-923c-bfee04a44057";
-  private final String ACCESS_TOKEN = "Bearer eyJhbGciOi...";
   private final String RANDOM_NICKNAME = "아름다운취준생";
 
   @Override
   protected Object initController() {
     return new MemberController(memberService, nicknameService);
-  }
-
-  @Test
-  @DisplayName("회원은 성공적으로 로그인하여 JWT 토큰을 발급받고, 헤더에 담아 정상적으로 응답을 반환한다.")
-  void signInSuccessTest() throws Exception {
-
-    // given
-    given(memberService.signIn(any(String.class)))
-        .willReturn(ACCESS_TOKEN);
-
-    // when & then
-    String expectedJson = createExpectedSuccessJson(true);
-
-    mockMvc.perform(
-            get("/api/v1/members")
-                .header(HttpHeaders.AUTHORIZATION, REDIS_KEY_PREFIX + TEMP_TOKEN)
-                .with(guestAuth(TEMP_TOKEN))
-        )
-        .andExpect(status().isOk())
-        .andExpect(header().string(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + ACCESS_TOKEN))
-        .andExpect(content().json(expectedJson))
-        .andDo(restDocs.document(
-            requestHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("임시 인증 토큰 -> `auth:temp-token:{tempToken}`")
-            ),
-
-            responseHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("회원 ACCESS TOKEN")
-            ),
-
-            responseFields(
-                fieldWithPath("code")
-                    .type(JsonFieldType.NUMBER)
-                    .description("응답 코드"),
-                fieldWithPath("message")
-                    .type(JsonFieldType.STRING)
-                    .description("성공 여부"),
-                fieldWithPath("data")
-                    .type(JsonFieldType.BOOLEAN)
-                    .description("응답 컨텐츠")
-            )
-        ));
-  }
-
-  @Test
-  @DisplayName("회원이 아닌 유저가 로그인 했을 때, KAKAO_ACCOUNT_NOT_REGISTERED 예외를 반환한다.")
-  void signInFailureTest() throws Exception {
-
-    // given
-    given(memberService.signIn(any(String.class)))
-        .willThrow(new CustomException(KAKAO_ACCOUNT_NOT_REGISTERED));
-
-    // when & then
-    String expectedJson = createExpectedErrorJson(KAKAO_ACCOUNT_NOT_REGISTERED);
-
-    mockMvc.perform(
-            get("/api/v1/members")
-                .header(HttpHeaders.AUTHORIZATION, REDIS_KEY_PREFIX + TEMP_TOKEN)
-                .with(guestAuth(TEMP_TOKEN))
-        )
-        .andExpect(status().isOk())
-        .andExpect(content().json(expectedJson))
-        .andDo(restDocs.document(
-            requestHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("임시 인증 토큰 -> `auth:temp-token:{tempToken}`")
-            ),
-
-            responseFields(
-                fieldWithPath("code")
-                    .type(JsonFieldType.NUMBER)
-                    .description("응답 코드"),
-                fieldWithPath("message")
-                    .type(JsonFieldType.STRING)
-                    .description("성공 여부"),
-                fieldWithPath("data")
-                    .type(JsonFieldType.BOOLEAN)
-                    .description("응답 컨텐츠")
-            )
-        ));
   }
 
   @Test
@@ -165,7 +78,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .content(requestJson)
                 .with(guestAuth(TEMP_TOKEN))
         )
-        .andExpect(status().isOk())
+        .andExpect(status().is(ALREADY_EXIST_MEMBER.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestHeaders(
@@ -222,7 +135,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .content(requestJson)
                 .with(guestAuth(TEMP_TOKEN))
         )
-        .andExpect(status().isOk())
+        .andExpect(status().is(INVALID_TEMP_TOKEN.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestHeaders(
@@ -325,7 +238,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(INVALID_LENGTH_NICKNAME.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestFields(
@@ -371,7 +284,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(INVALID_CV_NICKNAME.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestFields(
@@ -417,7 +330,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(INVALID_CHARACTER_NICKNAME.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestFields(
@@ -463,7 +376,7 @@ class MemberControllerDocsTest extends RestDocsSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(ALREADY_EXIST_NICKNAME.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
             requestFields(
@@ -523,12 +436,13 @@ class MemberControllerDocsTest extends RestDocsSupport {
   }
 
   @Test
-  @DisplayName("회원 ACCESS 토큰이 만료되면 REFRESH 토큰을 통해 재발급받고, 헤더에 담아 정상적으로 응답을 반환한다.")
+  @DisplayName("회원 ACCESS 토큰이 만료되면 REFRESH 토큰을 통해 재발급받고, 쿠키로 정상적으로 응답을 반환한다.")
   void reissueSuccessTest() throws Exception {
 
     // given
+    JwtToken jwtToken = new JwtToken("Bearer", "newAccessToken", "newRefreshToken");
     given(memberService.reissue(any(String.class)))
-        .willReturn(ACCESS_TOKEN);
+        .willReturn(jwtToken);
 
     // when
     String expectedJson = createExpectedSuccessJson(true);
@@ -536,24 +450,12 @@ class MemberControllerDocsTest extends RestDocsSupport {
     // then
     mockMvc.perform(
             post("/api/v1/members/reissue")
-                .header(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN)
                 .with(userAuth(KAKAO_ID))
         )
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(header().string(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + ACCESS_TOKEN))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
-            requestHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("회원 ACCESS TOKEN")
-            ),
-
-            responseHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("발급된 JWT ACCESS TOKEN")
-            ),
-
             responseFields(
                 fieldWithPath("code")
                     .type(JsonFieldType.NUMBER)
@@ -581,19 +483,12 @@ class MemberControllerDocsTest extends RestDocsSupport {
     // then
     mockMvc.perform(
             post("/api/v1/members/reissue")
-                .header(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN)
-
                 .with(userAuth(KAKAO_ID))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(INVALID_ACCESS_TOKEN.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
-            requestHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("회원 Access Token")
-            ),
-
             responseFields(
                 fieldWithPath("code")
                     .type(JsonFieldType.NUMBER)
@@ -621,18 +516,12 @@ class MemberControllerDocsTest extends RestDocsSupport {
     // then
     mockMvc.perform(
             post("/api/v1/members/reissue")
-                .header(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN)
                 .with(userAuth(KAKAO_ID))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(EXPIRED_REFRESH_TOKEN.getHttpStatus().value()))
         .andExpect(content().json(expectedJson))
         .andDo(restDocs.document(
-            requestHeaders(
-                headerWithName(HttpHeaders.AUTHORIZATION)
-                    .description("회원 Access Token")
-            ),
-
             responseFields(
                 fieldWithPath("code")
                     .type(JsonFieldType.NUMBER)

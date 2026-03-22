@@ -14,7 +14,10 @@ CREATE TABLE consent
     created_date  DATETIME(6),
     modified_date DATETIME(6),
     description   VARCHAR(255),
-    type          ENUM ('AGE_LIMIT_POLICY', 'PRIVACY_POLICY', 'TERMS_OF_SERVICE'),
+    type          ENUM('AGE_LIMIT_POLICY', 'PRIVACY_POLICY', 'TERMS_OF_SERVICE'),
+    version       INTEGER,
+    content       TEXT,
+    active        BIT    NOT NULL DEFAULT 1,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
@@ -26,6 +29,7 @@ CREATE TABLE member
     modified_date DATETIME(6),
     kakao_id      VARCHAR(255),
     nickname      VARCHAR(255),
+    role          ENUM('USER', 'ADMIN'),
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
@@ -38,8 +42,8 @@ CREATE TABLE phrase
     author        VARCHAR(255),
     sentence      VARCHAR(255),
     title         VARCHAR(255),
-    lang          ENUM ('EN', 'KO'),
-    type          ENUM ('POEM', 'QUOTE'),
+    lang          ENUM('EN', 'KO'),
+    type          ENUM('POEM', 'QUOTE'),
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
@@ -93,6 +97,9 @@ ALTER TABLE member_consent
         FOREIGN KEY (member_id)
             REFERENCES member (id);
 
+-- typing 테이블 인덱스 (랭킹 쿼리 최적화)
+CREATE INDEX idx_typing_score ON typing (score);
+
 -- typing 테이블 외래키
 ALTER TABLE typing
     ADD CONSTRAINT FKqm0uhurd8husw5jxea25d9mib
@@ -105,7 +112,7 @@ ALTER TABLE typing
             REFERENCES phrase (id);
 
 -- 회원 동의 유형 기본 데이터 삽입
-insert into consent(type, description, created_date, modified_date)
-values ('TERMS_OF_SERVICE', '서비스 이용 약관', now(), now()),
-       ('PRIVACY_POLICY', '개인 정보 처리 방침', now(), now()),
-       ('AGE_LIMIT_POLICY', '14세 미만 이용 제한', now(), now());
+insert into consent(type, description, version, content, active, created_date, modified_date)
+values ('TERMS_OF_SERVICE', '서비스 이용 약관', 1, '서비스 이용 약관 내용', true, now(), now()),
+       ('PRIVACY_POLICY', '개인 정보 처리 방침', 1, '개인 정보 처리 방침 내용', true, now(), now()),
+       ('AGE_LIMIT_POLICY', '14세 미만 이용 제한', 1, '14세 미만 이용 제한 내용', true, now(), now());

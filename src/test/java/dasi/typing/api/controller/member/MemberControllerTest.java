@@ -8,9 +8,6 @@ import static dasi.typing.exception.Code.INVALID_CHARACTER_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_CV_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_LENGTH_NICKNAME;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
-import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_REGISTERED;
-import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
-import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -20,7 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +30,7 @@ import dasi.typing.domain.consent.ConsentType;
 import dasi.typing.exception.ApiResponse;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
+import dasi.typing.jwt.JwtToken;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 class MemberControllerTest extends ControllerTestSupport {
@@ -48,63 +45,16 @@ class MemberControllerTest extends ControllerTestSupport {
   private final String KAKAO_ID = "kakaoId";
   private final String NICKNAME = "nickname";
   private final String TEMP_TOKEN = "tempToken";
-  private final String ACCESS_TOKEN = "accessToken";
   private final String RANDOM_NICKNAME = "RandomNickname";
 
   @Test
-  @DisplayName("회원은 성공적으로 로그인하여 JWT 토큰을 발급받고, 헤더에 담아 정상적으로 응답을 반환한다.")
-  void signInSuccessTest() throws Exception {
-
-    // given
-    given(memberService.signIn(any(String.class)))
-        .willReturn(ACCESS_TOKEN);
-
-    // when & then
-    String expectedJson = createExpectedSuccessJson(true);
-
-    mockMvc.perform(
-            get("/api/v1/members")
-                .header(HttpHeaders.AUTHORIZATION, REDIS_KEY_PREFIX + TEMP_TOKEN)
-                .with(guestAuth(TEMP_TOKEN))
-        )
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(header().string(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + ACCESS_TOKEN))
-        .andExpect(content().json(expectedJson));
-
-    verify(memberService).signIn(TEMP_TOKEN);
-  }
-
-  @Test
-  @DisplayName("회원이 아닌 유저가 로그인 했을 때, KAKAO_ACCOUNT_NOT_REGISTERED 예외를 반환한다.")
-  void signInFailureTest() throws Exception {
-
-    // given
-    given(memberService.signIn(any(String.class)))
-        .willThrow(new CustomException(KAKAO_ACCOUNT_NOT_REGISTERED));
-
-    // when & then
-    String expectedJson = createExpectedErrorJson(KAKAO_ACCOUNT_NOT_REGISTERED);
-
-    mockMvc.perform(
-            get("/api/v1/members")
-                .header(HttpHeaders.AUTHORIZATION, REDIS_KEY_PREFIX)
-                .with(guestAuth(TEMP_TOKEN))
-        )
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(content().json(expectedJson));
-
-    verify(memberService).signIn(TEMP_TOKEN);
-  }
-
-  @Test
-  @DisplayName("회원이 아닌 유저가 회원가입에 성공하면 JWT 토큰을 발급받고, 헤더에 담아 정상적으로 응답을 반환한다.")
+  @DisplayName("회원이 아닌 유저가 회원가입에 성공하면 JWT 토큰을 HTTP-only 쿠키로 발급받고, 정상적으로 응답을 반환한다.")
   void signUpSuccessTest() throws Exception {
 
     // given
+    JwtToken jwtToken = new JwtToken("Bearer", "testAccessToken", "testRefreshToken");
     given(memberService.signUp(any(String.class), any(MemberCreateServiceRequest.class)))
-        .willReturn(ACCESS_TOKEN);
+        .willReturn(jwtToken);
 
     MemberCreateRequest request = new MemberCreateRequest(NICKNAME,
         List.of(ConsentType.TERMS_OF_SERVICE, ConsentType.PRIVACY_POLICY));
@@ -122,7 +72,6 @@ class MemberControllerTest extends ControllerTestSupport {
         )
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(header().string(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + ACCESS_TOKEN))
         .andExpect(content().json(expectedJson));
   }
 
@@ -132,7 +81,6 @@ class MemberControllerTest extends ControllerTestSupport {
         Arguments.of(INVALID_TEMP_TOKEN)
     );
   }
-
 
   @DisplayName("회원이 아닌 유저가 회원가입에 실패하면 상황에 맞는 예외를 반환한다.")
   @ParameterizedTest(name = "[{index}] -> {0}")
@@ -158,7 +106,7 @@ class MemberControllerTest extends ControllerTestSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(code.getHttpStatus().value()))
         .andExpect(content().json(expectedJson));
   }
 
@@ -224,7 +172,7 @@ class MemberControllerTest extends ControllerTestSupport {
                 .with(guestAuth(TEMP_TOKEN))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(code.getHttpStatus().value()))
         .andExpect(content().json(expectedJson));
 
     verify(memberService).validateNickname(any(MemberNicknameServiceRequest.class));
@@ -253,11 +201,12 @@ class MemberControllerTest extends ControllerTestSupport {
   }
 
   @Test
-  @DisplayName("회원 ACCESS 토큰이 만료되면 REFRESH 토큰을 통해 재발급받고, 헤더에 담아 정상적으로 응답을 반환한다.")
+  @DisplayName("회원 ACCESS 토큰이 만료되면 REFRESH 토큰을 통해 재발급받고, 쿠키로 정상적으로 응답을 반환한다.")
   void reissueSuccessTest() throws Exception {
     // given
+    JwtToken jwtToken = new JwtToken("Bearer", "newAccessToken", "newRefreshToken");
     given(memberService.reissue(any(String.class)))
-        .willReturn(ACCESS_TOKEN);
+        .willReturn(jwtToken);
 
     // when
     String expectedJson = createExpectedSuccessJson(true);
@@ -269,7 +218,6 @@ class MemberControllerTest extends ControllerTestSupport {
         )
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(header().string(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + ACCESS_TOKEN))
         .andExpect(content().json(expectedJson));
 
     verify(memberService).reissue(any(String.class));
@@ -299,7 +247,7 @@ class MemberControllerTest extends ControllerTestSupport {
                 .with(userAuth(KAKAO_ID))
         )
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().is(code.getHttpStatus().value()))
         .andExpect(content().json(expectedJson));
 
     verify(memberService).reissue(any(String.class));

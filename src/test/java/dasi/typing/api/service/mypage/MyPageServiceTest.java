@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dasi.typing.api.controller.mypage.response.MyPageResponse;
 import dasi.typing.api.controller.mypage.response.TypingHistoryResponse;
-import dasi.typing.api.controller.mypage.response.WeeklyScoreResponse;
+import dasi.typing.api.controller.mypage.response.DailyScoreResponse;
 import dasi.typing.api.service.ranking.RankingCacheService;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
@@ -127,7 +127,7 @@ class MyPageServiceTest {
     assertThat(response.highestScore()).isNull();
     assertThat(response.currentRanking()).isNull();
     assertThat(response.typingHistories()).isEmpty();
-    assertThat(response.weeklyScores()).isEmpty();
+    assertThat(response.dailyScores()).isEmpty();
   }
 
   @Test
@@ -139,24 +139,24 @@ class MyPageServiceTest {
   }
 
   @Test
-  @DisplayName("주간 최고 점수 데이터가 반환된다.")
-  void getMyPageWeeklyScoresTest() {
+  @DisplayName("일별 최고 점수 데이터가 반환된다.")
+  void getMyPageDailyScoresTest() {
     // given
-    Member member = memberRepository.save(new Member("kakao_weekly", "주간테스트"));
-    Phrase phrase = phraseRepository.save(createPhrase("주간 점수 테스트 문장"));
+    Member member = memberRepository.save(new Member("kakao_daily", "일별테스트"));
+    Phrase phrase = phraseRepository.save(createPhrase("일별 점수 테스트 문장"));
 
     typingRepository.save(createTyping(100, 0.90, 20, 120, member, phrase));
     typingRepository.save(createTyping(300, 0.95, 60, 320, member, phrase));
     typingRepository.save(createTyping(200, 0.88, 40, 220, member, phrase));
 
     // when
-    MyPageResponse response = myPageService.getMyPage("kakao_weekly");
-    List<WeeklyScoreResponse> weeklyScores = response.weeklyScores();
+    MyPageResponse response = myPageService.getMyPage("kakao_daily");
+    List<DailyScoreResponse> dailyScores = response.dailyScores();
 
     // then
-    assertThat(weeklyScores).isNotEmpty();
-    assertThat(weeklyScores).extracting(WeeklyScoreResponse::getHighestScore)
-        .allMatch(score -> score > 0);
+    assertThat(dailyScores).hasSize(1);
+    assertThat(dailyScores.getFirst().highestScore()).isEqualTo(300);
+    assertThat(dailyScores.getFirst().date()).isEqualTo(java.time.LocalDate.now());
   }
 
   private Typing createTyping(int cpm, double acc, int wpm, int maxCpm,

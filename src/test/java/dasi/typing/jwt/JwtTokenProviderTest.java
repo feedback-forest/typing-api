@@ -11,6 +11,7 @@ import static io.jsonwebtoken.security.Keys.hmacShaKeyFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import dasi.typing.domain.member.Role;
 import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.response.ClaimsResponse;
 import io.jsonwebtoken.Claims;
@@ -34,7 +35,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
 
     // when
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     Claims claims = jwtTokenProvider.getClaimsResponse(jwtToken.accessToken()).claims();
 
     // then
@@ -49,7 +50,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
     Date now = new Date();
     JwtToken jwtToken = jwtTokenProvider
-        .generateToken(kakaoId, new Date(now.getTime() - TOKEN_EXPIRE_TIME * 2));
+        .generateToken(kakaoId, Role.USER, new Date(now.getTime() - TOKEN_EXPIRE_TIME * 2));
 
     // when
     String expiredToken = jwtToken.accessToken();
@@ -68,7 +69,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
 
     // when
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     String extractedKakaoId = jwtTokenProvider.getKakaoId(jwtToken.accessToken());
 
     // then
@@ -82,7 +83,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
 
     // when
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
     boolean isValid = jwtTokenProvider.validateAccessToken(jwtToken.accessToken());
 
     // then
@@ -109,7 +110,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
     Date now = new Date();
     JwtToken jwtToken = jwtTokenProvider
-        .generateToken(kakaoId, new Date(now.getTime() - TOKEN_EXPIRE_TIME * 2));
+        .generateToken(kakaoId, Role.USER, new Date(now.getTime() - TOKEN_EXPIRE_TIME * 2));
 
     // when
     String expiredToken = jwtToken.accessToken();
@@ -156,7 +157,7 @@ class JwtTokenProviderTest {
   void isValidRefreshTokenTest() {
     // given
     String kakaoId = "1234567890";
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
 
     // when
     String refreshToken = jwtToken.refreshToken();
@@ -186,7 +187,7 @@ class JwtTokenProviderTest {
     String kakaoId = "1234567890";
     Date now = new Date();
     JwtToken jwtToken = jwtTokenProvider
-        .generateToken(kakaoId, new Date(now.getTime() - TOKEN_REFRESH_TIME * 2));
+        .generateToken(kakaoId, Role.USER, new Date(now.getTime() - TOKEN_REFRESH_TIME * 2));
 
     // when
     String expiredToken = jwtToken.refreshToken();
