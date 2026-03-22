@@ -47,4 +47,11 @@ public class ConstantUtil {
   // Phrase Count for Random Phrases
   public static final int PHRASE_COUNT = 20;
 
+  // Ranking Redis
+  public static final String RANKING_REALTIME_KEY = "ranking:realtime";
+  public static final String RANKING_MONTHLY_KEY_PREFIX = "ranking:monthly:";
+  public static final String RANKING_MEMBER_KEY = "ranking:members";
+  public static final String RANKING_MEMBER_MONTHLY_KEY_PREFIX = "ranking:members:monthly:";
+  public static final int RANKING_COUNT = 50;
+
 }

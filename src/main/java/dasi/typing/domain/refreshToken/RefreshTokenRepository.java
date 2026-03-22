@@ -9,4 +9,6 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshToken, Str
 
   Optional<RefreshToken> findByKakaoId(String kakaoId);
 
+  void deleteByKakaoId(String kakaoId);
+
 }
