@@ -58,8 +58,8 @@ spring:
               - profile_nickname    # 닉네임
               - account_email       # 카카오계정(이메일)
 
-  jackson:
-    property-naming-strategy: SNAKE_CASE
+cookie:
+  secure: false
 
 front:
   server: ${front.local-url}
