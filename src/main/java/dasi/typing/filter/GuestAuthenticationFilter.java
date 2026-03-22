@@ -41,7 +41,7 @@ public class GuestAuthenticationFilter extends OncePerRequestFilter {
         AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
             "guestKey",
             new GuestPrincipal(guestId),
-            AuthorityUtils.createAuthorityList("GUEST")
+            AuthorityUtils.createAuthorityList("ROLE_GUEST")
         );
 
         SecurityContextHolder.getContext().setAuthentication(anonymousToken);

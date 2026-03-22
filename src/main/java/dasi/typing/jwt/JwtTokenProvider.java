@@ -43,12 +43,12 @@ public class JwtTokenProvider {
     this.refreshTokenRepository = refreshTokenRepository;
   }
 
-  public JwtToken generateToken(String kakaoId, Date now) {
+  public JwtToken generateToken(String kakaoId, Role role, Date now) {
 
     Date accessTokenExpiresIn = new Date(now.getTime() + TOKEN_EXPIRE_TIME);
     Date refreshTokenExpiresIn = new Date(now.getTime() + TOKEN_REFRESH_TIME);
 
-    Claims claims = createClaims(kakaoId, now, accessTokenExpiresIn);
+    Claims claims = createClaims(kakaoId, role, now, accessTokenExpiresIn);
 
     String accessToken = Jwts.builder()
         .setClaims(claims)
@@ -113,7 +113,11 @@ public class JwtTokenProvider {
     return getClaimsResponse(token).claims().get("kakaoId", String.class);
   }
 
-  private Claims createClaims(String kakaoId, Date now, Date accessTokenExpiresIn) {
+  public String getRole(final String token) {
+    return getClaimsResponse(token).claims().get("role", String.class);
+  }
+
+  private Claims createClaims(String kakaoId, Role role, Date now, Date accessTokenExpiresIn) {
     Claims claims = Jwts.claims()
         .setIssuer("typing")
         .setSubject("KAKAO_ID")
@@ -121,7 +125,7 @@ public class JwtTokenProvider {
         .setExpiration(accessTokenExpiresIn);
 
     claims.put("kakaoId", kakaoId);
-    claims.put("role", Role.USER);
+    claims.put("role", role.name());
     return claims;
   }
 }
