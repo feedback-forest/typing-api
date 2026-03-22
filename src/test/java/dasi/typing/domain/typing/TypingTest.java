@@ -43,7 +43,7 @@ class TypingTest {
   private Typing createTyping(int cpm, int acc) {
     return Typing.builder()
         .cpm(cpm)
-        .acc(acc)
+        .acc(acc / 100.0)
         .wpm(0)
         .member(null)
         .phrase(null).build();

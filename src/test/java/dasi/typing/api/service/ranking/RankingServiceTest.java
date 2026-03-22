@@ -111,7 +111,7 @@ class RankingServiceTest {
   private Typing createTyping(int cpm, int acc, Member member, Phrase phrase) {
     return Typing.builder()
         .cpm(cpm)
-        .acc(acc)
+        .acc((double) acc)
         .wpm(0)
         .maxCpm(0)
         .member(member)

@@ -88,7 +88,7 @@ class TypingServiceTest {
         .isNotNull()
         .extracting("id", "cpm", "acc", "wpm")
         .containsExactlyInAnyOrder(
-            tuple(savedTyping.getId(), 100, 100, 100)
+            tuple(savedTyping.getId(), 100, 100.0, 100)
         );
     assertThat(List.of(savedTyping.getMember()))
         .isNotNull()
@@ -114,7 +114,7 @@ class TypingServiceTest {
     AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
         "guestKey",
         new GuestPrincipal(guestId),
-        AuthorityUtils.createAuthorityList("GUEST")
+        AuthorityUtils.createAuthorityList("ROLE_GUEST")
     );
     SecurityContextHolder.getContext().setAuthentication(anonymousToken);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -141,7 +141,7 @@ class TypingServiceTest {
     AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
         "guestKey",
         new GuestPrincipal(guestId),
-        AuthorityUtils.createAuthorityList("GUEST")
+        AuthorityUtils.createAuthorityList("ROLE_GUEST")
     );
     SecurityContextHolder.getContext().setAuthentication(anonymousToken);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -170,7 +170,7 @@ class TypingServiceTest {
   @DisplayName("회원이지만 kakaoId 정보가 없는 경우, NOT_EXIST_MEMBER 예외가 발생한다.")
   void createTypingWithMissingKakaoIdTest() {
     // given
-    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
     UsernamePasswordAuthenticationToken authenticationToken =
         new UsernamePasswordAuthenticationToken("000000000", null, authorities);
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
@@ -201,7 +201,7 @@ class TypingServiceTest {
     // given
     String kakaoId = "000000000";
     Member member = createMember(kakaoId, "test nickname");
-    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
+    List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
 
     UsernamePasswordAuthenticationToken authenticationToken =
         new UsernamePasswordAuthenticationToken(kakaoId, null, authorities);
