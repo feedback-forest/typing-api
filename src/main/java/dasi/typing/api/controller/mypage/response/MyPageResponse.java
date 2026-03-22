@@ -9,7 +9,7 @@ public record MyPageResponse(
     Integer highestScore,
     Long currentRanking,
     List<TypingHistoryResponse> typingHistories,
-    List<WeeklyScoreResponse> weeklyScores
+    List<DailyScoreResponse> dailyScores
 ) {
 
   @Builder

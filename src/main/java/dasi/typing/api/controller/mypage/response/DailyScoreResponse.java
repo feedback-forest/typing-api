@@ -4,15 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 import lombok.Builder;
 
-public record WeeklyScoreResponse(
+public record DailyScoreResponse(
     @JsonFormat(pattern = "yyyy-MM-dd")
-    LocalDate weekStartDate,
+    LocalDate date,
     Integer highestScore
 ) {
 
   @Builder
-  public WeeklyScoreResponse(LocalDate weekStartDate, Integer highestScore) {
-    this.weekStartDate = weekStartDate;
+  public DailyScoreResponse(LocalDate date, Integer highestScore) {
+    this.date = date;
     this.highestScore = highestScore;
   }
 }
