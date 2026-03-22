@@ -112,9 +112,9 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
   );
 
   @Query(value = """
-      SELECT COUNT(DISTINCT t.score, t.max_cpm, t.acc) + 1 AS ranking
-      FROM typing t
-      WHERE (t.score, t.max_cpm, t.acc) > (:targetScore, :targetMaxCpm, :targetAcc)
+         SELECT COUNT(DISTINCT t.score) + 1 AS ranking
+         FROM typing t
+         WHERE t.score > :targetScore
       """, nativeQuery = true)
   Long findRanking(@Param("targetScore") int targetScore);
 }
