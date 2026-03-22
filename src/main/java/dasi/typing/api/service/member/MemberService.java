@@ -1,8 +1,11 @@
 package dasi.typing.api.service.member;
 
+import static dasi.typing.exception.Code.ALREADY_EXIST_MEMBER;
 import static dasi.typing.exception.Code.EXPIRED_REFRESH_TOKEN;
 import static dasi.typing.exception.Code.INSUFFICIENT_CONSENT_EXCEPTION;
 import static dasi.typing.exception.Code.INVALID_TEMP_TOKEN;
+import static dasi.typing.exception.Code.NOT_EXIST_MEMBER;
+import static dasi.typing.utils.ConstantUtil.REDIS_KEY_PREFIX;
 import static dasi.typing.utils.ConstantUtil.REQUIRED_CONSENT_COUNT;
 
 import dasi.typing.api.service.member.request.MemberCreateServiceRequest;
@@ -12,6 +15,7 @@ import dasi.typing.domain.consent.Consent;
 import dasi.typing.domain.consent.ConsentRepository;
 import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.domain.member.Role;
 import dasi.typing.domain.refreshToken.RefreshToken;
 import dasi.typing.domain.refreshToken.RefreshTokenRepository;
 import dasi.typing.exception.CustomException;
@@ -41,22 +45,25 @@ public class MemberService {
   @Transactional
   public JwtToken signUp(String tempToken, MemberCreateServiceRequest request) {
 
-    String kakaoId = getKakaoIdFromTempToken(tempToken);
+    String tempTokenKey = resolveTempTokenKey(tempToken);
+    String kakaoId = getKakaoIdFromTempToken(tempTokenKey);
     String nickname = request.getNickname();
+    validateSignUpRequest(kakaoId, nickname);
+
     Member member = new Member(kakaoId, nickname);
 
     List<Consent> consents = consentRepository.findByTypeInAndActiveTrue(request.getAgreements());
 
-    if (consents.size() != REQUIRED_CONSENT_COUNT) {
+    if (consents.size() < REQUIRED_CONSENT_COUNT) {
       throw new CustomException(INSUFFICIENT_CONSENT_EXCEPTION);
     }
 
     member.addConsent(consents);
     memberRepository.save(member);
 
-    redisTemplate.delete(tempToken);
+    redisTemplate.delete(tempTokenKey);
 
-    return jwtTokenProvider.generateToken(kakaoId, new Date());
+    return jwtTokenProvider.generateToken(kakaoId, Role.USER, new Date());
   }
 
   public void validateNickname(MemberNicknameServiceRequest request) {
@@ -76,11 +83,39 @@ public class MemberService {
 
     jwtTokenProvider.validateRefreshToken(refreshToken.getToken());
 
-    return jwtTokenProvider.generateToken(kakaoId, new Date());
+    Member member = memberRepository.findByKakaoId(kakaoId)
+        .orElseThrow(() -> new CustomException(NOT_EXIST_MEMBER));
+
+    return jwtTokenProvider.generateToken(kakaoId, member.getRole(), new Date());
   }
 
-  private String getKakaoIdFromTempToken(String tempToken) {
-    return Optional.ofNullable(redisTemplate.opsForValue().get(tempToken))
+  @Transactional
+  public void logout(String kakaoId) {
+    refreshTokenRepository.deleteByKakaoId(kakaoId);
+  }
+
+  private void validateSignUpRequest(String kakaoId, String nickname) {
+    if (memberRepository.existsByKakaoId(kakaoId)) {
+      throw new CustomException(ALREADY_EXIST_MEMBER);
+    }
+
+    validateNickname(new MemberNicknameServiceRequest(nickname));
+  }
+
+  private String getKakaoIdFromTempToken(String tempTokenKey) {
+    return Optional.ofNullable(redisTemplate.opsForValue().get(tempTokenKey))
         .orElseThrow(() -> new CustomException(INVALID_TEMP_TOKEN));
+  }
+
+  private String resolveTempTokenKey(String tempToken) {
+    if (tempToken == null || tempToken.isBlank()) {
+      throw new CustomException(INVALID_TEMP_TOKEN);
+    }
+
+    if (tempToken.startsWith(REDIS_KEY_PREFIX)) {
+      return tempToken;
+    }
+
+    return REDIS_KEY_PREFIX + tempToken;
   }
 }

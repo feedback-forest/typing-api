@@ -5,7 +5,10 @@ import static dasi.typing.utils.ConstantUtil.SIGNUP_REDIRECT_URL;
 import static dasi.typing.utils.ConstantUtil.TEMP_TOKEN_TTL;
 
 import dasi.typing.api.service.oauth.CustomOidcUser;
+import dasi.typing.domain.member.Member;
 import dasi.typing.domain.member.MemberRepository;
+import dasi.typing.exception.Code;
+import dasi.typing.exception.CustomException;
 import dasi.typing.jwt.JwtToken;
 import dasi.typing.jwt.JwtTokenProvider;
 import dasi.typing.utils.CookieUtil;
@@ -59,9 +62,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
       HttpServletResponse response,
       String kakaoId
   ) throws IOException {
-    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, new Date());
+    Member member = memberRepository.findByKakaoId(kakaoId)
+        .orElseThrow(() -> new CustomException(Code.NOT_EXIST_MEMBER));
+    JwtToken jwtToken = jwtTokenProvider.generateToken(kakaoId, member.getRole(), new Date());
     CookieUtil.addTokenCookies(response, jwtToken);
-    redirectStrategy.sendRedirect(request, response, FRONT_SERVER);
+    redirectStrategy.sendRedirect(request, response, FRONT_SERVER + "/login/callback");
   }
 
   private void handleNewMember(

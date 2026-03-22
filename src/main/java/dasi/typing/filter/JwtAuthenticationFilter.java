@@ -41,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (isNotEmpty(token) && (isReissueRequest(requestURI) || jwtTokenProvider.validateAccessToken(token))) {
 
       String kakaoId = jwtTokenProvider.getKakaoId(token);
-      List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("USER");
+      String role = jwtTokenProvider.getRole(token);
+      List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_" + role);
 
       UsernamePasswordAuthenticationToken authentication =
           new UsernamePasswordAuthenticationToken(kakaoId, null, authorities);
