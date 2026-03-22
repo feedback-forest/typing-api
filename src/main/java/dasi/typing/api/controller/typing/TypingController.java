@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('USER, GUEST')")
+@PreAuthorize("hasAnyRole('USER', 'GUEST')")
 @RequestMapping("/api/v1/typings")
 public class TypingController {
 

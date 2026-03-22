@@ -1,11 +1,12 @@
 package dasi.typing.domain.typing;
 
 import dasi.typing.api.controller.ranking.response.RankingResponse;
-import io.lettuce.core.dynamic.annotation.Param;
+import dasi.typing.domain.member.Member;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TypingRepository extends JpaRepository<Typing, Integer> {
 
@@ -81,19 +82,39 @@ public interface TypingRepository extends JpaRepository<Typing, Integer> {
   Long findHighestRankingByMemberId(@Param("memberId") Long memberId);
 
   @Query(value = """
-         SELECT COUNT(*) + 1 AS ranking
-         FROM typing t
-         WHERE t.score > :targetScore
-           OR (t.score = :targetScore AND t.max_cpm > :targetMaxCpm)
-           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc > :targetAcc)
-           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc = :targetAcc AND t.created_date < :targetCreatedDate)
-           OR (t.score = :targetScore AND t.max_cpm = :targetMaxCpm AND t.acc = :targetAcc AND t.created_date = :targetCreatedDate AND t.id < :targetId)
+      WITH partitionRowNumber AS (
+         SELECT t.member_id    AS memberId,
+                m.nickname     AS nickname,
+                t.score,
+                t.max_cpm      AS maxCpm,
+                t.acc,
+                t.created_date AS createdDate,
+                ROW_NUMBER()
+                  OVER (PARTITION BY t.member_id ORDER BY t.score DESC, t.max_cpm DESC, t.acc DESC, t.created_date, t.id) AS prn
+         FROM typing t JOIN member m ON m.id = t.member_id)
+      SELECT memberId, nickname, score, maxCpm, acc, createdDate
+      FROM partitionRowNumber
+      WHERE prn = 1;
       """, nativeQuery = true)
-  Long findRanking(
-      @Param("targetScore") int targetScore,
-      @Param("targetMaxCpm") int targetMaxCpm,
-      @Param("targetAcc") double targetAcc,
-      @Param("targetCreatedDate") LocalDateTime targetCreatedDate,
-      @Param("targetId") Long targetId
+  List<Object[]> findAllBestRecordsForWarmup();
+
+  long countByMember(Member member);
+
+  List<Typing> findByMemberOrderByCreatedDateDesc(Member member);
+
+  @Query("SELECT MAX(t.score) FROM Typing t WHERE t.member = :member")
+  Integer findHighestScoreByMember(@Param("member") Member member);
+
+  @Query("SELECT t FROM Typing t WHERE t.member = :member AND t.createdDate >= :since ORDER BY t.createdDate")
+  List<Typing> findByMemberAndCreatedDateAfter(
+      @Param("member") Member member,
+      @Param("since") LocalDateTime since
   );
+
+  @Query(value = """
+      SELECT COUNT(DISTINCT t.score, t.max_cpm, t.acc) + 1 AS ranking
+      FROM typing t
+      WHERE (t.score, t.max_cpm, t.acc) > (:targetScore, :targetMaxCpm, :targetAcc)
+      """, nativeQuery = true)
+  Long findRanking(@Param("targetScore") int targetScore);
 }

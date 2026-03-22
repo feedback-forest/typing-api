@@ -3,6 +3,7 @@ package dasi.typing.api.service.typing;
 import static dasi.typing.exception.Code.NOT_EXIST_PHRASE;
 
 import dasi.typing.api.service.phrase.LuckyMessageService;
+import dasi.typing.api.service.ranking.RankingCacheService;
 import dasi.typing.api.service.typing.request.TypingCreateServiceRequest;
 import dasi.typing.api.service.typing.response.TypingResponse;
 import dasi.typing.domain.member.Member;
@@ -15,10 +16,12 @@ import dasi.typing.domain.typing.TypingRepository;
 import dasi.typing.exception.Code;
 import dasi.typing.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,6 +31,7 @@ public class TypingService {
   private final PhraseRepository phraseRepository;
   private final MemberRepository memberRepository;
   private final LuckyMessageService luckyMessageService;
+  private final RankingCacheService rankingCacheService;
 
   @Transactional
   public TypingResponse saveTyping(Authentication authentication, TypingCreateServiceRequest request) {
@@ -49,13 +53,21 @@ public class TypingService {
       Typing savedTyping = typingRepository.save(request.toEntity(phrase, member));
 
       nickname = member.getNickname();
-      rank = typingRepository.findRanking(
-          savedTyping.getScore(),
-          savedTyping.getMaxCpm(),
-          savedTyping.getAcc(),
-          savedTyping.getCreatedDate(),
-          savedTyping.getMember().getId()
-      );
+
+      try {
+        rankingCacheService.addOrUpdateIfBetter(
+            member.getId(),
+            member.getNickname(),
+            savedTyping.getScore(),
+            savedTyping.getMaxCpm(),
+            savedTyping.getAcc(),
+            savedTyping.getCreatedDate()
+        );
+      } catch (Exception e) {
+        log.warn("[Ranking] Redis 랭킹 업데이트 실패. 다음 Warmup에서 복구됩니다.", e);
+      }
+
+      rank = typingRepository.findRanking(savedTyping.getScore());
     }
 
     return TypingResponse.builder()
@@ -67,6 +79,6 @@ public class TypingService {
 
   private boolean isAuthenticatedUser(Authentication authentication) {
     return authentication.getAuthorities().stream()
-        .anyMatch(auth -> auth.getAuthority().equals("USER"));
+        .anyMatch(auth -> auth.getAuthority().equals("ROLE_USER"));
   }
 }
