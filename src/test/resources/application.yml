@@ -1,7 +1,4 @@
 spring:
-  profiles:
-    active: test
-
   config:
     import:
       - optional:classpath:/application-secret.yml
@@ -60,6 +57,15 @@ spring:
 
 front:
   server: localhost:3000
+
+phrase:
+  queue:
+    init:
+      enabled: false
+
+ranking:
+  warmup:
+    enabled: false
 
 logging:
   level:
