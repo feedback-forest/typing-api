@@ -54,9 +54,7 @@ spring:
             client-secret: ${oauth2.client-secret-key}
             scope:
               - openid              # OIDC
-              - name                # 이름
               - profile_nickname    # 닉네임
-              - account_email       # 카카오계정(이메일)
 
 cookie:
   secure: false

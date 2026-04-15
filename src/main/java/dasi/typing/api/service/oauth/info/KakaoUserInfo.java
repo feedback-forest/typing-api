@@ -14,7 +14,5 @@ public class KakaoUserInfo {
 
   private String sub;
 
-  private String name;
-
-  private String nickname;
+  private String profileNickname;
 }

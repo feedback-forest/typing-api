@@ -1,54 +1,31 @@
 package dasi.typing.api.service.oauth;
 
-import static dasi.typing.exception.Code.KAKAO_ACCOUNT_NOT_FOUND;
-import static dasi.typing.utils.ConstantUtil.BEARER_PREFIX;
-import static dasi.typing.utils.ConstantUtil.TOKEN_HEADER;
-import static dasi.typing.utils.ConstantUtil.USER_INFO_URL;
-
 import dasi.typing.api.service.oauth.info.KakaoUserInfo;
-import dasi.typing.api.service.oauth.request.KakaoUserCreateServiceRequest;
-import dasi.typing.exception.CustomException;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends OidcUserService {
 
-  private final RestClient restClient;
-
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
 
     OidcUser oidcUser = super.loadUser(userRequest);
 
-    KakaoUserInfo info = getKakaoUserInfo(userRequest);
+    KakaoUserInfo info = new KakaoUserInfo(
+        oidcUser.getSubject(),
+        oidcUser.getAttributes().get("nickname").toString()
+    );
 
     return CustomOidcUser.builder()
         .oidcUser(oidcUser)
         .info(info).build();
-  }
-
-  private KakaoUserInfo getKakaoUserInfo(OidcUserRequest userRequest) {
-
-    String accessToken = userRequest.getAccessToken().getTokenValue();
-
-    KakaoUserCreateServiceRequest request = restClient.get()
-        .uri(USER_INFO_URL)
-        .header(TOKEN_HEADER, BEARER_PREFIX + accessToken)
-        .retrieve()
-        .body(KakaoUserCreateServiceRequest.class);
-
-    return Optional.ofNullable(request)
-        .map(KakaoUserCreateServiceRequest::toKakaoUserInfo)
-        .orElseThrow(() -> new CustomException(KAKAO_ACCOUNT_NOT_FOUND));
   }
 }

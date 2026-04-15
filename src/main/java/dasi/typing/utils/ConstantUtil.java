@@ -29,9 +29,6 @@ public class ConstantUtil {
   // Reissue URI
   public static final String REISSUE_URI = "/api/v1/members/reissue";
 
-  // User Info URL
-  public static final String USER_INFO_URL = "https://kapi.kakao.com/v1/oidc/userinfo";
-
   // JWT Token Expiration and Refresh Times
   public static final long TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 3L;
   public static final long TOKEN_REFRESH_TIME = 1000 * 60 * 60 * 24 * 7L;
@@ -39,10 +36,6 @@ public class ConstantUtil {
   // Cookie Names
   public static final String ACCESS_TOKEN_COOKIE = "access_token";
   public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
-
-  // Phrase Queue Redis
-  public static final String PHRASE_QUEUE_KEY_PREFIX = "phrase:queue:";
-  public static final long PHRASE_QUEUE_TTL_HOURS = 25L;
 
   // Phrase Count for Random Phrases
   public static final int PHRASE_COUNT = 20;
