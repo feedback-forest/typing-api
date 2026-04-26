@@ -2,22 +2,20 @@ package dasi.typing.api.service.phrase;
 
 import static dasi.typing.domain.phrase.Lang.KO;
 import static dasi.typing.domain.phrase.LangType.POEM;
-import static dasi.typing.utils.ConstantUtil.PHRASE_QUEUE_KEY_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dasi.typing.api.controller.phrase.response.PhraseResponse;
 import dasi.typing.domain.phrase.Phrase;
 import dasi.typing.domain.phrase.PhraseRepository;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 
 @SpringBootTest
 class PhraseServiceTest {
@@ -28,36 +26,22 @@ class PhraseServiceTest {
   @Autowired
   private PhraseRepository phraseRepository;
 
-  @Autowired
-  private RedisTemplate<String, String> redisTemplate;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @BeforeEach
   void setUp() {
-    redisTemplate.delete(PHRASE_QUEUE_KEY_PREFIX + LocalDate.now());
     phraseRepository.deleteAllInBatch();
   }
 
   @AfterEach
   void tearDown() {
-    redisTemplate.delete(PHRASE_QUEUE_KEY_PREFIX + LocalDate.now());
     phraseRepository.deleteAllInBatch();
   }
 
   @Test
-  @DisplayName("Redis 큐에서 JSON 객체를 직접 조회하여 PhraseResponse 리스트로 반환한다.")
-  void getRandomPhrasesFromQueueTest() throws Exception {
+  @DisplayName("Caffeine 캐시에서 문장을 조회하여 PhraseResponse 리스트로 반환한다.")
+  void getRandomPhrasesFromCacheTest() {
     // given
     Phrase phrase = createPhrase("test sentence");
     phraseRepository.save(phrase);
-
-    // PhraseResponse JSON을 Redis에 직접 저장
-    PhraseResponse response = PhraseResponse.from(phrase);
-    String json = objectMapper.writeValueAsString(response);
-    String redisKey = PHRASE_QUEUE_KEY_PREFIX + LocalDate.now();
-    redisTemplate.opsForList().rightPush(redisKey, json);
 
     // when
     List<PhraseResponse> responses = phraseService.getRandomPhrases();
@@ -68,21 +52,6 @@ class PhraseServiceTest {
   }
 
   @Test
-  @DisplayName("Redis 큐가 없을 경우 fallback으로 DB에서 직접 조회한다.")
-  void getRandomPhrasesFallbackTest() {
-    // given - Redis 큐를 생성하지 않음 → fallback 발동
-    Phrase phrase = createPhrase("fallback sentence");
-    phraseRepository.save(phrase);
-
-    // when
-    List<PhraseResponse> responses = phraseService.getRandomPhrases();
-
-    // then
-    assertThat(responses).hasSize(1);
-    assertThat(responses.getFirst().getSentence()).isEqualTo("fallback sentence");
-  }
-
-  @Test
   @DisplayName("phrase가 없을 경우 빈 리스트를 반환한다.")
   void getRandomPhrasesEmptyTest() {
     // when
@@ -90,6 +59,40 @@ class PhraseServiceTest {
 
     // then
     assertThat(responses).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Fisher-Yates 알고리즘으로 반환된 문장들은 중복이 없다.")
+  void getRandomPhrasesNoDuplicateTest() {
+    // given
+    for (int i = 0; i < 30; i++) {
+      phraseRepository.save(createPhrase("sentence " + i));
+    }
+
+    // when
+    List<PhraseResponse> responses = phraseService.getRandomPhrases();
+
+    // then
+    assertThat(responses).hasSize(20);
+    Set<Long> ids = responses.stream()
+        .map(PhraseResponse::getId)
+        .collect(Collectors.toSet());
+    assertThat(ids).hasSize(20);
+  }
+
+  @Test
+  @DisplayName("문장 수가 요청 수보다 적으면 전체 문장을 반환한다.")
+  void getRandomPhrasesLessThanCountTest() {
+    // given
+    for (int i = 0; i < 5; i++) {
+      phraseRepository.save(createPhrase("sentence " + i));
+    }
+
+    // when
+    List<PhraseResponse> responses = phraseService.getRandomPhrases();
+
+    // then
+    assertThat(responses).hasSize(5);
   }
 
   private static Phrase createPhrase(String sentence) {
