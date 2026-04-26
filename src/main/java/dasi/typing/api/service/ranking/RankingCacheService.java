@@ -8,6 +8,7 @@ import static dasi.typing.utils.ConstantUtil.RANKING_REALTIME_KEY;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasi.typing.api.controller.ranking.response.RankingResponse;
+import dasi.typing.api.service.ranking.dto.RankingMemberData;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,9 +30,18 @@ public class RankingCacheService {
   private final RedisTemplate<String, String> redisTemplate;
   private final ObjectMapper objectMapper;
 
-  /**
-   * Composite Score 계산 score(5자리) × 10^9 + maxCpm(5자리) × 10^4 + acc(4자리) 높을수록 상위 랭크
-   */
+  private static final String UPDATE_IF_BETTER_LUA = """
+      local cur = redis.call('ZSCORE', KEYS[1], ARGV[1])
+      if cur == false or tonumber(cur) < tonumber(ARGV[2]) then
+          redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+          redis.call('HSET', KEYS[2], ARGV[1], ARGV[3])
+          return 1
+      end
+      return 0
+      """;
+
+  private final RedisScript<Long> updateIfBetterScript = new DefaultRedisScript<>(UPDATE_IF_BETTER_LUA, Long.class);
+
   public static double toCompositeScore(int score, int maxCpm, double acc) {
     return score * 1_000_000_000.0
            + maxCpm * 10_000.0
@@ -93,21 +105,18 @@ public class RankingCacheService {
     log.info("[Ranking] 월간 랭킹 Warmup 완료 - month={}", targetMonth);
   }
 
-  public void addOrUpdateIfBetter(Long memberId, String nickname,
-      int score, int maxCpm, double acc, LocalDateTime createdDate) {
+  public void addOrUpdateIfBetter(Long memberId, String nickname, int score, int maxCpm, double acc, LocalDateTime createdDate) {
 
     double newComposite = toCompositeScore(score, maxCpm, acc);
     String memberKey = String.valueOf(memberId);
 
-    updateZSetIfBetter(RANKING_REALTIME_KEY, RANKING_MEMBER_KEY,
-        memberKey, newComposite, memberId, nickname, score, createdDate);
+    updateZSetIfBetter(RANKING_REALTIME_KEY, RANKING_MEMBER_KEY, memberKey, newComposite, memberId, nickname, score, createdDate);
 
     YearMonth currentMonth = YearMonth.now();
     String monthlyKey = RANKING_MONTHLY_KEY_PREFIX + currentMonth;
     String monthlyMemberKey = RANKING_MEMBER_MONTHLY_KEY_PREFIX + currentMonth;
 
-    updateZSetIfBetter(monthlyKey, monthlyMemberKey,
-        memberKey, newComposite, memberId, nickname, score, createdDate);
+    updateZSetIfBetter(monthlyKey, monthlyMemberKey, memberKey, newComposite, memberId, nickname, score, createdDate);
   }
 
   public List<RankingResponse> getRealtimeTopN(int count) {
@@ -132,18 +141,18 @@ public class RankingCacheService {
       String memberKey, double newComposite,
       Long memberId, String nickname, int score, LocalDateTime createdDate) {
 
-    Double currentScore = redisTemplate.opsForZSet().score(zsetKey, memberKey);
-
-    if (currentScore == null || newComposite > currentScore) {
-      redisTemplate.opsForZSet().add(zsetKey, memberKey, newComposite);
-      redisTemplate.opsForHash().put(hashKey, memberKey,
-          toJson(memberId, nickname, score, createdDate));
-    }
+    String json = toJson(memberId, nickname, score, createdDate);
+    redisTemplate.execute(
+        updateIfBetterScript,
+        List.of(zsetKey, hashKey),
+        memberKey,
+        String.valueOf(newComposite),
+        json
+    );
   }
 
   private List<RankingResponse> getTopN(String zsetKey, String hashKey, int count) {
-    Set<TypedTuple<String>> tuples = redisTemplate.opsForZSet()
-        .reverseRangeWithScores(zsetKey, 0, count - 1);
+    Set<TypedTuple<String>> tuples = redisTemplate.opsForZSet().reverseRangeWithScores(zsetKey, 0, count - 1L);
 
     if (tuples == null || tuples.isEmpty()) {
       return List.of();
@@ -206,14 +215,5 @@ public class RankingCacheService {
       return localDateTime;
     }
     throw new IllegalStateException("지원하지 않는 날짜 타입: " + dateObj.getClass());
-  }
-
-  public record RankingMemberData(
-      Long memberId,
-      String nickname,
-      int score,
-      LocalDateTime createdDate
-  ) {
-
   }
 }
