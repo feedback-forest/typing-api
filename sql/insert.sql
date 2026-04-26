@@ -103,6 +103,10 @@ VALUES ('1001', '타이핑마스터', NOW(), NOW()),
        ('1099', '키보드미티컬', NOW(), NOW()),
        ('1100', '타자의전설', NOW(), NOW());
 
+UPDATE member
+SET role = 'USER'
+WHERE role IS NULL;
+
 -- 2. member_consent 테이블 데이터 (모든 회원이 모든 약관에 동의)
 INSERT INTO member_consent (member_id, consent_id, agreed, created_date, modified_date)
 SELECT m.id, c.id, 1, NOW(), NOW()
@@ -407,6 +411,10 @@ VALUES ('현대 사회의 복잡다기한 문제들을 해결하기 위해서는
        ('미래 세대를 위한 지속 가능한 사회 시스템 구축과 세대 간 연대 의식이 중요해요.', '최고급 타이핑 연습', '시스템', 'KO', 'QUOTE'),
        ('복잡계 이론과 시스템 사고를 활용한 통합적 문제 해결 역량을 배양해야 합니다.', '최고급 타이핑 연습', '시스템', 'KO', 'QUOTE'),
        ('인류의 보편적 가치와 지역적 특수성을 조화시키는 글로컬라이제이션을 추진해야 해요.', '최고급 타이핑 연습', '시스템', 'KO', 'QUOTE');
+
+UPDATE phrase
+SET rand_id = FLOOR(1 + RAND() * 2147483646)
+WHERE rand_id IS NULL;
 
 -- 5. typing 테이블 데이터 (400개 - 각 회원이 평균 4개의 타이핑 기록)
 -- 점수 200-300으로 조정하고 정합성 고려

@@ -19,7 +19,7 @@ CREATE TABLE consent
     content       TEXT,
     active        BIT    NOT NULL DEFAULT 1,
     PRIMARY KEY (id)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 2. member 테이블 생성
 CREATE TABLE member
@@ -29,9 +29,9 @@ CREATE TABLE member
     modified_date DATETIME(6),
     kakao_id      VARCHAR(255),
     nickname      VARCHAR(255),
-    role          ENUM('USER', 'ADMIN'),
+    role          ENUM('GUEST', 'USER', 'ADMIN') NOT NULL DEFAULT 'USER',
     PRIMARY KEY (id)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 3. phrase 테이블 생성
 CREATE TABLE phrase
@@ -40,12 +40,13 @@ CREATE TABLE phrase
     created_date  DATETIME(6),
     modified_date DATETIME(6),
     author        VARCHAR(255),
-    sentence      VARCHAR(255),
+    sentence      TEXT,
     title         VARCHAR(255),
     lang          ENUM('EN', 'KO'),
     type          ENUM('POEM', 'QUOTE'),
+    rand_id       INT,
     PRIMARY KEY (id)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 4. member_consent 테이블 생성 (중간 테이블)
 CREATE TABLE member_consent
@@ -57,7 +58,7 @@ CREATE TABLE member_consent
     member_id     BIGINT,
     modified_date DATETIME(6),
     PRIMARY KEY (id)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 5. typing 테이블 생성
 CREATE TABLE typing
@@ -73,7 +74,7 @@ CREATE TABLE typing
     modified_date DATETIME(6),
     phrase_id     BIGINT,
     PRIMARY KEY (id)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 제약조건 추가
 
