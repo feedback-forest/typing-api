@@ -187,6 +187,7 @@ jacocoTestCoverageVerification {
                     '**.domain.refreshToken.**',
                     '**.domain.phrasequeue.**',
                     '**.api.service.phrase.PhraseService*',
+                    '**.api.service.phrase.PhraseWarmupInitializer*',
                     '**.api.service.ranking.**',
                     '**.api.service.typing.TypingService*',
                     '**.api.service.mypage.**',
