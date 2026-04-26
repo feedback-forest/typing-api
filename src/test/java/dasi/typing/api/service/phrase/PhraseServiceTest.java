@@ -29,6 +29,7 @@ class PhraseServiceTest {
   @BeforeEach
   void setUp() {
     phraseRepository.deleteAllInBatch();
+    phraseService.evictCache();
   }
 
   @AfterEach

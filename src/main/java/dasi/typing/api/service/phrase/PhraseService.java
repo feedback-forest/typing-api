@@ -65,6 +65,11 @@ public class PhraseService {
     phraseCache.get(CACHE_KEY, key -> loadFromDb());
   }
 
+  public void evictCache() {
+    phraseCache.invalidateAll();
+    log.info("[Phrase] Caffeine 캐시 무효화 완료.");
+  }
+
   private List<PhraseResponse> loadFromDb() {
     List<PhraseResponse> phrases = phraseRepository.findAll()
         .stream()
