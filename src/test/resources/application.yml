@@ -59,9 +59,9 @@ front:
   server: localhost:3000
 
 phrase:
-  queue:
-    init:
-      enabled: false
+  cache:
+    ttl-hours: 24
+    max-size: 1
 
 ranking:
   warmup:
