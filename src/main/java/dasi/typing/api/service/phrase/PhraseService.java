@@ -61,9 +61,8 @@ public class PhraseService {
     return List.copyOf(copy.subList(0, count));
   }
 
-  public void evictCache() {
-    phraseCache.invalidateAll();
-    log.info("[Phrase] Caffeine 캐시 무효화 완료.");
+  public void warmup() {
+    phraseCache.get(CACHE_KEY, key -> loadFromDb());
   }
 
   private List<PhraseResponse> loadFromDb() {
