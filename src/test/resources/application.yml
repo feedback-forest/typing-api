@@ -62,12 +62,10 @@ phrase:
   cache:
     ttl-hours: 24
     max-size: 1
-
-ranking:
   warmup:
     enabled: false
 
-phrase:
+ranking:
   warmup:
     enabled: false
 
